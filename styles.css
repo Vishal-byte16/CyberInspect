@@ -63,23 +63,23 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;
   animation:floatIn .7s cubic-bezier(.2,.8,.2,1)}
 @keyframes floatIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:none}}
 .auth-card::before{
-  content:'';
-  position:absolute;
-  inset:-1px;
-  border-radius:26px;
-  padding:1px;
-  background:linear-gradient(135deg,var(--cyan),transparent 40%,transparent 60%,var(--cyan-2));
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
-  opacity:.5;
-.auth-card{
-    position:relative;
-    isolation:isolate;
+    content:'';
+    position:absolute;
+    inset:-1px;
+    border-radius:26px;
+    padding:1px;
+    background:linear-gradient(135deg,var(--cyan),transparent 40%,transparent 60%,var(--cyan-2));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    opacity:.5;
+    pointer-events:none;
+    z-index:-1;
 }
 
-  pointer-events:none;
-  z-index:-1;
+.auth-card {
+    position:relative;
+    isolation:isolate;
 }
 .auth-brand{text-align:center;margin-bottom:28px}
 .logo-shield{font-size:38px;filter:drop-shadow(0 0 14px var(--cyan-glow));display:inline-block;animation:pulse 3s ease-in-out infinite}
