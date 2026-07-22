@@ -1,5 +1,6 @@
 def build_html(scan) -> str:
     d = scan.result
+    print(d.keys())
     hdr_rows = "".join(f"<tr><td>{h['name']}</td><td>{'Present' if h['present'] else 'Missing'}</td></tr>"
                        for h in d["headers"]["headers"])
     return f"""<html><head><meta charset='utf-8'><title>CyberInspect Report</title>

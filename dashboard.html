@@ -3,30 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Dashboard – CyberInspect</title>
+
+<link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+<link rel="manifest" href="assets/favicon/site.webmanifest">
+
 <link rel="stylesheet" href="assets/css/variables.css">
 <link rel="stylesheet" href="assets/css/animations.css">
 <link rel="stylesheet" href="assets/css/common.css">
 <link rel="stylesheet" href="frontend/login/login.css">
 <link rel="stylesheet" href="styles.css">
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<body>
+
 <div id="app" class="app">
+
   <aside class="sidebar">
+
     <div class="sidebar-brand">
-      <span class="logo-shield">🛡️</span>
-      <span class="brand-text">Cyber<b>Inspect</b></span>
+
+      <img src="frontend/assets/logo.jpeg"
+           class="sidebar-logo"
+           alt="CyberInspect Logo">
+
+      <div class="brand-text">
+        <div class="brand-title">
+          Cyber<b>Inspect</b>
+        </div>
+
+        <div class="brand-subtitle">
+          Website Security Scanner
+        </div>
+      </div>
+
     </div>
+
     <nav class="sidebar-nav">
       <a class="nav-item active" href="dashboard.html"><span>📊</span> Dashboard</a>
-      <a class="nav-item " href="scanner.html"><span>🌐</span> Scanner</a>
-      <a class="nav-item " href="history.html"><span>📚</span> Scan History</a>
-      <a class="nav-item " href="saved.html"><span>⭐</span> Saved Websites</a>
-      <a class="nav-item " href="profile.html"><span>👤</span> Profile</a>
-      <a class="nav-item admin-only " href="admin.html" style="display:none"><span>⚙️</span> Admin</a>
+      <a class="nav-item" href="scanner.html"><span>🌐</span> Scanner</a>
+      <a class="nav-item" href="history.html"><span>📚</span> Scan History</a>
+      <a class="nav-item" href="saved.html"><span>⭐</span> Saved Websites</a>
+      <a class="nav-item" href="profile.html"><span>👤</span> Profile</a>
+      <a class="nav-item admin-only" href="admin.html" style="display:none"><span>⚙️</span> Admin</a>
     </nav>
+
     <div class="sidebar-footer">
       <div class="user-mini">
         <div class="avatar" id="user-avatar">U</div>
@@ -35,31 +63,38 @@
           <div class="user-mini-role" id="user-mini-role">Analyst</div>
         </div>
       </div>
+
       <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
     </div>
+
   </aside>
 
   <main class="main">
+
     <header class="topbar">
       <h2>Dashboard</h2>
+
       <div class="topbar-actions">
         <div class="search-mini">
-          <input type="text" id="quick-scan-url" placeholder="Quick scan a URL…" onkeydown="if(event.key==='Enter')quickScan()">
-          <button class="btn btn-primary btn-sm" onclick="quickScan()">Scan</button>
+          <input
+            type="text"
+            id="quick-scan-url"
+            placeholder="Quick scan a URL…"
+            onkeydown="if(event.key==='Enter')quickScan()">
+
+          <button class="btn btn-primary btn-sm" onclick="quickScan()">
+            Scan
+          </button>
         </div>
       </div>
+
     </header>
+
     <div class="content" id="content"></div>
+
   </main>
-</div>
 
-<div id="report-modal" class="modal hidden">
-  <div class="modal-content report-content">
-    <button class="modal-close" onclick="closeReport()">✕</button>
-    <div id="report-body"></div>
-  </div>
 </div>
-
 <script src="frontend/js/storage.js"></script>
 <script src="backend/utils/utils.js"></script>
 <script src="backend/api/api.js"></script>

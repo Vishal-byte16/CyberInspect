@@ -36,18 +36,40 @@ def calculate_score(data: dict) -> tuple[int, str]:
         score += WEIGHTS["reputation"]
 
     # Cookies (10)
-    score += (4 if cookies.get("secure") else 0) + (3 if cookies.get("httpOnly") else 0) \
-           + (3 if cookies.get("sameSite") else 0)
+    score += WEIGHTS["cookies"]
+    if cookies.get("secure"):
+        score += 4
 
+    if cookies.get("httpOnly"):
+        score += 3
+
+    if cookies.get("sameSite"):
+        score += 3
     # HTTP (10)
-    if http.get("status") in (200, 301, 302): score += 5
-    if http.get("server") == "Hidden (good)": score += 5
-    else: score += 2
+    # Successful response
+    if http.get("status") in (200, 301, 302):
+        score += 4
+
+    # Response time
+    rating = http.get("response_time_rating", "")
+
+    if rating == "Excellent":
+        score += 4
+    elif rating == "Good":
+        score += 3
+    elif rating == "Moderate":
+        score += 2
+    elif rating == "Slow":
+        score += 1
+
+    # Server disclosure
+    server = str(http.get("server", "")).lower()
+
+    if server in ("hidden (good)", "", "unknown"):
+        score += 2
 
     # Tech (5)
-    if tech.get("cdn") != "None": score += 3
-    if tech.get("proxy") != "None": score += 2
-
+    score += WEIGHTS["tech"]
     score = max(0, min(100, round(score)))
     return score, risk_level(score)
 

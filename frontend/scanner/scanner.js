@@ -369,10 +369,11 @@ function renderResult(r, container){
       findingInfo('Certificate Issuer',r.ssl.issuer),
       finding(r.ssl.chainComplete,'Certificate Chain',r.ssl.chainComplete?'Complete chain of trust':'Chain could not be verified'),
       findingInfo('Supported TLS',r.ssl.tls.map(t=>`<span class="tag">${t}</span>`).join('')),
-    ])}
+    ], 'Checks whether your connection to this site is encrypted, and whether the certificate proving its identity is valid and trustworthy.')}
 
     ${section('🛡️ Security Headers',
-      r.headers.map(h=>finding(h.present,h.name,h.present?'Header present':'Missing – recommended to add')))}
+      r.headers.map(h=>finding(h.present,h.name,(h.present?'Header present':'Missing – recommended to add')+' — '+headerHint(h.name))),
+      'Extra instructions a site can send your browser to block common attacks like clickjacking and malicious scripts — missing ones aren\'t automatically dangerous, but they remove a layer of protection.')}
 
     ${section('🌍 Domain Information',[
   findingInfo('Domain Age', r.domain.age),
@@ -403,35 +404,59 @@ function renderResult(r, container){
   ...(r.domain.lookupError
       ? [findingInfo('WHOIS Lookup', `⚠️ ${r.domain.lookupError}`)]
       : []),
-])}
+], 'Public registration details about who owns this domain and how long it\'s existed — brand-new domains are worth extra caution.')}
     ${section('🌐 DNS Analysis',[
       findingInfo('A Record',r.dns.A), findingInfo('AAAA Record',r.dns.AAAA),
       findingInfo('MX Record',r.dns.MX), findingInfo('NS Record',r.dns.NS),
       findingInfo('TXT Record',r.dns.TXT), findingInfo('CNAME',r.dns.CNAME),
-      finding(r.dns.SPF,'SPF Record',r.dns.SPF?'SPF configured':'No SPF – email spoofing risk'),
-      finding(r.dns.DMARC,'DMARC Record',r.dns.DMARC?'DMARC configured':'No DMARC policy'),
-      finding(r.dns.DKIM,'DKIM','DKIM signing '+(r.dns.DKIM?'detected':'not detected')),
-    ])}
+      finding(r.dns.SPF,'SPF Record',(r.dns.SPF?'SPF configured':'No SPF – email spoofing risk')+' — SPF lists which servers are allowed to send email as this domain'),
+      finding(r.dns.DMARC,'DMARC Record',(r.dns.DMARC?'DMARC configured':'No DMARC policy')+' — DMARC tells email providers what to do with messages that fail spoofing checks'),
+      finding(r.dns.DKIM,'DKIM',('DKIM signing '+(r.dns.DKIM?'detected':'not detected'))+' — DKIM is a digital signature proving an email really came from this domain'),
+    ], 'Checks this domain\'s core internet setup and whether it\'s protected against attackers sending fake emails pretending to be from it.')}
 
     ${section('🚨 Website Reputation',[
       finding(!r.rep.blacklisted,'Blacklist Status',r.rep.blacklisted?'Listed on blacklist':'Not blacklisted'),
       finding(!r.rep.phishing,'Phishing Reports',r.rep.phishing?'Phishing reports found':'No phishing reports'),
       finding(!r.rep.malware,'Malware Reports',r.rep.malware?'Malware reports found':'No malware reports'),
       findingInfo('Summary',r.rep.summary),
-    ])}
+    ], 'Checks whether this site has been publicly reported for phishing, malware, or other malicious activity.')}
 
-    ${section('🍪 Cookie Security',[
-      finding(r.cookies.secure,'Secure Flag',r.cookies.secure?'Cookies use Secure':'Missing Secure flag'),
-      finding(r.cookies.httpOnly,'HttpOnly Flag',r.cookies.httpOnly?'Cookies use HttpOnly':'Missing HttpOnly flag'),
-      finding(r.cookies.sameSite,'SameSite Flag',r.cookies.sameSite?'SameSite configured':'Missing SameSite'),
+    ${section('🍪 Cookie Security', r.cookies.count===0 ? [
+      findingInfo('Cookies Detected','This response set no cookies — nothing to assess here.'),
+    ] : [
+      finding(r.cookies.secure,'Secure Flag',(r.cookies.secure?'Cookies use Secure':'Missing Secure flag')+' — Secure means cookies are only ever sent over an encrypted connection'),
+      finding(r.cookies.httpOnly,'HttpOnly Flag',(r.cookies.httpOnly?'Cookies use HttpOnly':'Missing HttpOnly flag')+' — HttpOnly hides cookies from page scripts, blocking a common theft technique'),
+      finding(r.cookies.sameSite,'SameSite Flag',(r.cookies.sameSite?'SameSite configured':'Missing SameSite')+' — SameSite stops other sites from riding along with your cookies to fake actions on your behalf'),
       findingInfo('Cookies Detected',r.cookies.count),
-    ])}
+    ], 'Checks how safely this site handles the small files ("cookies") it stores in your browser to remember you.')}
 
+   
     ${section('📡 HTTP Analysis',[
-      findingInfo('Status Code',r.http.status===0?'Unreachable':r.http.status),
-      findingInfo('Redirect Chain',r.http.redirects.join(' → ')),
-      finding(r.http.server==='Hidden (good)','Server Disclosure',r.http.server==='Hidden (good)'?'Server header hidden':'Server: '+r.http.server),
-    ])}
+    findingInfo(
+        'Status Code',
+        `<b>${r.http.status_title}</b><br>${r.http.status_explanation}`
+    ),
+
+    findingInfo(
+        'Response Time',
+        r.http.response_time != null
+            ? `${r.http.response_time} ms`
+            : 'Unknown'
+    ),
+
+    findingInfo(
+        'Redirect Chain',
+        r.http.redirects.join('<br>')
+    ),
+
+    finding(
+        r.http.server === 'Hidden',
+        'Server Disclosure',
+        r.http.server === 'Hidden'
+            ? 'Server header hidden. This is good practice because it reveals less information to attackers.'
+            : `Server: ${r.http.server}`
+    ),
+], 'Checks how the web server responds to requests and how much it reveals about its own setup — less disclosure gives attackers fewer clues.')}
 
     ${section('🔍 Technology Detection',[
       findingInfo('Web Server',r.tech.server),
@@ -439,7 +464,7 @@ function renderResult(r, container){
       findingInfo('JS Frameworks',r.tech.js.map(t=>`<span class="tag">${t}</span>`).join('')),
       findingInfo('CDN',r.tech.cdn),
       findingInfo('Reverse Proxy',r.tech.proxy),
-    ])}`;
+    ], 'Identifies the software and infrastructure this site is built on — purely informational, not a pass/fail check.')}`;
 
   animateScore(r.score, r.risk);
   container.scrollIntoView({behavior:'smooth'});
@@ -487,11 +512,23 @@ function animateScore(target, risk){
     const iv=setInterval(()=>{ n+=step; if(n>=target){n=target;clearInterval(iv);} numEl.textContent=n; },20); }
 }
 
-function section(title, findings){
+function section(title, findings, subtitle){
   return `<div class="card result-section">
     <div class="result-head" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('span').style.transform=this.nextElementSibling.classList.contains('hidden')?'rotate(-90deg)':'rotate(0)'">
-      <h3>${title}</h3><span>▾</span></div>
+      <div><h3>${title}</h3>${subtitle?`<p class="muted" style="font-size:12px;font-weight:400;margin-top:4px">${subtitle}</p>`:''}</div>
+      <span>▾</span></div>
     <div class="result-body">${findings.join('')}</div></div>`;
+}
+function headerHint(name){
+  const hints = {
+    'Content-Security-Policy': 'blocks malicious scripts from running on the page',
+    'Strict-Transport-Security': 'forces browsers to always use the encrypted version of the site',
+    'X-Frame-Options': 'stops other sites from hiding this page inside theirs to trick clicks ("clickjacking")',
+    'X-Content-Type-Options': 'stops browsers from misreading file types in ways attackers can exploit',
+    'Referrer-Policy': 'controls how much of this site\'s address is shared when someone clicks a link away from it',
+    'Permissions-Policy': 'controls which browser features (camera, location, etc.) the site can use',
+  };
+  return hints[name] || 'a browser-level security setting';
 }
 function finding(ok,title,detail){
   return `<div class="finding ${ok?'pass':'fail'}"><span class="finding-icon">${ok?'✅':'❌'}</span>
@@ -514,7 +551,6 @@ window.apiDeleteScan = apiDeleteScan;
 window.renderScanner = renderScanner;
 window.runScan = runScan;
 window.finishScan = finishScan;
-window.quickScan = quickScan;
 window.saveWebsite = saveWebsite;
 window.renderResult = renderResult;
 

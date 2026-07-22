@@ -23,6 +23,23 @@
 .auth-brand h1{font-size:28px;font-weight:800;margin-top:10px;letter-spacing:-.5px}
 .auth-brand h1 span{background:linear-gradient(135deg,var(--cyan),var(--cyan-2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .auth-brand p{color:var(--slate);font-size:13px;margin-top:6px;letter-spacing:.3px}
+.logo-img{
+    width:90px;
+    height:90px;
+    border-radius:18px;
+    object-fit:cover;
+    margin-bottom:14px;
+
+    box-shadow:
+        0 0 20px rgba(34,230,230,.35),
+        0 0 45px rgba(34,230,230,.18);
+
+    transition:.35s;
+}
+
+.logo-img:hover{
+    transform:scale(1.05);
+}
 .auth-form{display:none} .auth-form.active{display:block;animation:fadeUp .4s}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
 .auth-form h2{font-size:22px;margin-bottom:20px;font-weight:700}

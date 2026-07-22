@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Profile – CyberInspect</title>
+
+<link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+<link rel="manifest" href="assets/favicon/site.webmanifest">
+
 <link rel="stylesheet" href="assets/css/variables.css">
 <link rel="stylesheet" href="assets/css/animations.css">
 <link rel="stylesheet" href="assets/css/common.css">
 <link rel="stylesheet" href="frontend/login/login.css">
 <link rel="stylesheet" href="styles.css">
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -16,9 +25,24 @@
 <div id="app" class="app">
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <span class="logo-shield">🛡️</span>
-      <span class="brand-text">Cyber<b>Inspect</b></span>
+
+    <img src="frontend/assets/logo.jpeg"
+         class="sidebar-logo"
+         alt="CyberInspect Logo">
+
+    <div class="brand-text">
+
+        <div class="brand-title">
+            Cyber<b>Inspect</b>
+        </div>
+
+        <div class="brand-subtitle">
+            Website Security Scanner
+        </div>
+
     </div>
+
+</div>
     <nav class="sidebar-nav">
       <a class="nav-item " href="dashboard.html"><span>📊</span> Dashboard</a>
       <a class="nav-item " href="scanner.html"><span>🌐</span> Scanner</a>

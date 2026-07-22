@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from backend.database.db import Base, engine, SessionLocal
 from backend.database.models import User
 from backend.auth.security import hash_password
 from backend.utils.config import settings
+from backend.utils.limiter import limiter
 from backend.auth.routes import router as auth_router
 from backend.api.scan_routes import router as scan_router
 from backend.api.admin_routes import router as admin_router
@@ -14,6 +18,11 @@ Base.metadata.create_all(bind=engine)
 
 
 def seed_default_users():
+    """Creates a demo admin + analyst login. Only ever runs when
+    SEED_DEFAULT_USERS=True is explicitly set (see utils/config.py), which
+    is blocked outright when ENVIRONMENT=production. Never let this run
+    unguarded again - it's how the site would ship with a public admin
+    login of admin@cyberinspect.io / admin123."""
     db = SessionLocal()
     try:
         defaults = [
@@ -29,11 +38,15 @@ def seed_default_users():
         db.close()
 
 
-seed_default_users()
+if settings.SEED_DEFAULT_USERS:
+    seed_default_users()
 
 app = FastAPI(title=settings.APP_NAME,
               description="Website Security Assessment Platform API",
               version="1.0.0")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(CORSMiddleware, allow_origins=settings.CORS_ORIGINS,
                    allow_credentials=True, allow_methods=["*"], allow_headers=["*"])

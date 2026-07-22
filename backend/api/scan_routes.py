@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from backend.database.db import get_db
@@ -6,6 +6,8 @@ from backend.database.models import WebsiteScan, SecurityFinding, SavedWebsite
 from backend.auth.security import get_current_user
 from backend.services.scan_service import run_full_scan
 from backend.services.findings import extract_findings
+from backend.utils.limiter import limiter
+from backend.utils.ssrf_guard import UnsafeScanTargetError
 
 router = APIRouter(prefix="/api/scan", tags=["Scanner"])
 
@@ -29,10 +31,13 @@ def _shape(scan: WebsiteScan) -> dict:
     return {"id": scan.id, "date": scan.created_at, **data}
 
 @router.post("")
-def create_scan(req: ScanRequest, db: Session = Depends(get_db),
+@limiter.limit("10/minute")
+def create_scan(request: Request, req: ScanRequest, db: Session = Depends(get_db),
                 user=Depends(get_current_user)):
     try:
         data = run_full_scan(req.url)
+    except UnsafeScanTargetError as e:
+        raise HTTPException(400, str(e))
     except Exception as e:
         raise HTTPException(400, f"Scan failed: {e}")
 

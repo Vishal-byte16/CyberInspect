@@ -1,7 +1,36 @@
-.env
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.env/
+.venv/
+
+# Environment Variables
+.env
+
+# Database
 *.db
+*.sqlite3
+
+# VS Code
 .vscode/
-CyberInspect_Backup_Working/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs
+*.log
+
+# Build
+dist/
+build/
+
+# Node
 node_modules/

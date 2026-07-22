@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Sign In – CyberInspect</title>
+
+<link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+<link rel="manifest" href="assets/favicon/site.webmanifest">
+
 <link rel="stylesheet" href="assets/css/variables.css">
 <link rel="stylesheet" href="assets/css/animations.css">
 <link rel="stylesheet" href="assets/css/common.css">
 <link rel="stylesheet" href="frontend/login/login.css">
 <link rel="stylesheet" href="styles.css">
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -16,11 +25,16 @@
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
     <div class="auth-brand">
-      <div class="logo-shield">🛡️</div>
-      <h1>Cyber<span>Inspect</span></h1>
-      <p>Website Security Assessment Platform</p>
-    </div>
 
+    <img src="frontend/assets/logo.jpeg"
+         class="logo-img"
+         alt="CyberInspect Logo">
+
+    <h1>Cyber<span>Inspect</span></h1>
+
+    <p>Website Security Assessment Platform</p>
+
+</div>
     <form id="login-form" class="auth-form active">
       <h2>Sign In</h2>
       <div class="input-group">
@@ -40,7 +54,7 @@
       <h2>Create Account</h2>
       <div class="input-group">
         <label>Full Name</label>
-        <input type="text" id="reg-name" placeholder="Jane Doe" required>
+        <input type="text" id="reg-name" placeholder="Username" required>
       </div>
       <div class="input-group">
         <label>Email</label>

@@ -1,6 +1,20 @@
-import requests, re
+import requests
+from backend.scanner.fingerprints import FINGERPRINTS
+from bs4 import BeautifulSoup
+
+def contains_any(text: str, patterns: list[str]) -> bool:
+    """Return True if any pattern exists in text."""
+    text = text.lower()
+
+    for pattern in patterns:
+        if pattern.lower() in text:
+            return True
+
+    return False
+
 
 def detect_technology(url: str) -> dict:
+
     tech = {
         "server": "Unknown",
         "cms": "None",
@@ -8,7 +22,9 @@ def detect_technology(url: str) -> dict:
         "cdn": "None",
         "proxy": "None",
     }
+
     try:
+
         r = requests.get(
             url,
             timeout=8,
@@ -21,53 +37,143 @@ def detect_technology(url: str) -> dict:
                 )
             },
         )
-        h = {k.lower(): v for k, v in r.headers.items()}
-        body = r.text.lower()
-        server = h.get("server", "")
-        if not server or server.lower() == "server":
-            tech["server"] = "Unknown"
-        else:
-            tech["server"] = server
 
-        server_l = server.lower() if server else ""
-        # CDN / proxy detection
-        if "cf-ray" in h or "cloudflare" in server_l:
-            tech["cdn"] = "Cloudflare"
-            tech["proxy"] = "Cloudflare"
-        elif "akamai" in body or "akamai" in server_l:
-            tech["cdn"] = "Akamai"
-        elif "cloudfront" in server_l:
-            tech["cdn"] = "Amazon CloudFront"
-        elif "fastly" in server_l:
-            tech["cdn"] = "Fastly"
+        headers = {k.lower(): v.lower() for k, v in r.headers.items()}
 
-        # CMS detection
-        if "wp-content" in body or "wordpress" in body:
-            tech["cms"] = "WordPress"
-        elif "drupal" in body:
-            tech["cms"] = "Drupal"
-        elif "joomla" in body:
-            tech["cms"] = "Joomla"
-        # React
-        if "__REACT_DEVTOOLS_GLOBAL_HOOK__" in r.text or "data-reactroot" in body:
-            tech["js"].append("React")
+        html = r.text
+        body = html.lower()
 
-        # Vue
-        if "__VUE__" in r.text or "data-v-" in body:
-            tech["js"].append("Vue")
+        soup = BeautifulSoup(html, "html.parser")
 
-        # Angular
-        if "ng-version" in body or "ng-app" in body:
-            tech["js"].append("Angular")
+        script_urls = [
+            (tag.get("src") or "").lower()
+            for tag in soup.find_all("script")
+        ]
 
-        # Next.js
-        if "/_next/" in body or "__NEXT_DATA__" in r.text:
-            tech["js"].append("Next.js")
+        meta_values = [
+            (
+                (tag.get("name") or "")
+                + " "
+                + (tag.get("content") or "")
+            ).lower()
+            for tag in soup.find_all("meta")
+        ]
 
-        # jQuery
-        if "jquery" in body and ("jquery.min.js" in body or "window.jquery" in body):
-            tech["js"].append("jQuery")
-        if not tech["js"]: tech["js"] = ["Vanilla JS"]
+        cookies = " ".join(r.cookies.keys()).lower()
+
+        # -----------------------------
+        # Generic Fingerprint Engine
+        # -----------------------------
+
+        for category, technologies in FINGERPRINTS.items():
+
+            for tech_name, fingerprint in technologies.items():
+
+                matched = False
+
+                # --------------------
+                # Header fingerprints
+                # --------------------
+
+                if "headers" in fingerprint:
+
+                    for header_name, values in fingerprint["headers"].items():
+
+                        if header_name.lower() not in headers:
+                            continue
+
+                        header_value = headers[header_name.lower()]
+
+                        for value in values:
+
+                            if value == "":
+                                matched = True
+                                break
+
+                            if value.lower() in header_value:
+                                matched = True
+                                break
+
+                        if matched:
+                            break
+
+                # --------------------
+                # HTML fingerprints
+                # --------------------
+
+                if not matched and "html" in fingerprint:
+
+                    if contains_any(body, fingerprint["html"]):
+                        matched = True
+
+                # --------------------
+                # Cookie fingerprints
+                # --------------------
+
+                if not matched and "cookies" in fingerprint:
+
+                    if contains_any(cookies, fingerprint["cookies"]):
+                        matched = True
+
+                # --------------------
+                # Script fingerprints
+                # --------------------
+
+                if not matched and "scripts" in fingerprint:
+
+                    for script in script_urls:
+
+                        for pattern in fingerprint["scripts"]:
+
+                            if pattern.lower() in script:
+                                matched = True
+                                break
+
+                        if matched:
+                            break
+
+                # --------------------
+                # Meta fingerprints
+                # --------------------
+
+                if not matched and "meta" in fingerprint:
+
+                    for meta in meta_values:
+
+                        for pattern in fingerprint["meta"]:
+
+                            if pattern.lower() in meta:
+                                matched = True
+                                break
+
+                        if matched:
+                            break
+
+                # --------------------
+                # Store result
+                # --------------------
+
+                if matched:
+
+                    if category == "server":
+                        tech["server"] = tech_name
+
+                    elif category == "cms":
+                        tech["cms"] = tech_name
+
+                    elif category in ("frontend", "backend"):
+
+                        if tech_name not in tech["js"]:
+                            tech["js"].append(tech_name)
+
+                    elif category == "cdn":
+                        tech["cdn"] = tech_name
+                        tech["proxy"] = tech_name
+
+        if not tech["js"]:
+            tech["js"] = ["Vanilla JS"]
+
     except Exception as e:
         tech["error"] = str(e)
+
     return tech

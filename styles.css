@@ -216,13 +216,50 @@ body::after {
   border-right:1px solid var(--line-solid);
   z-index:30;
 }
-.sidebar-brand {
-  display:flex; align-items:center; gap:10px;
-  padding:6px 10px 22px;
-  font-size:16px; font-weight:700;
+.sidebar-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:8px 12px 22px;
 }
-.sidebar-brand .logo-shield { font-size:22px; }
-.brand-text b { color:var(--amber-light); }
+
+.sidebar-logo{
+    width:54px;
+    height:54px;
+    border-radius:14px;
+    object-fit:cover;
+
+    border:2px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        0 0 20px rgba(34,230,230,.35),
+        0 0 45px rgba(34,230,230,.15);
+
+    transition:all .3s ease;
+}
+
+.sidebar-logo:hover{
+    transform:scale(1.08) rotate(4deg);
+    box-shadow:
+        0 0 25px rgba(34,230,230,.55),
+        0 0 60px rgba(34,230,230,.28);
+}
+
+.brand-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.2;
+}
+
+.brand-title{
+    font-size:16px;
+    font-weight:700;
+}
+
+.brand-subtitle{
+    font-size:11px;
+    color:var(--slate);
+}
 
 .sidebar-nav { flex:1; display:flex; flex-direction:column; gap:2px; margin-top:4px; }
 .nav-item {
