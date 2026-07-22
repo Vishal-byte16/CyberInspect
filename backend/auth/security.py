@@ -13,9 +13,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def hash_password(pw: str) -> str:
+    print(f"Password: {pw}")
+    print(f"Length: {len(pw)}")
     return pwd_context.hash(pw)
-
-
+    
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
