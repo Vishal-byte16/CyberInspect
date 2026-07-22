@@ -1,5 +1,5 @@
 // ---------- API Layer (replaces mockScan + localStorage) ----------
-const API = "http://127.0.0.1:8000";
+const API = "https://cyberinspect-rebk.onrender.com";
 function token(){ return localStorage.getItem('ci_token'); }
 async function api(path, opts={}){
   const res = await fetch(API+path, {

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
 
-    CORS_ORIGINS: list[str] = ["https://cyber-inspect.netlify.app/","http://localhost:3000", "http://127.0.0.1:5500"]
+    CORS_ORIGINS: list[str] = ["https://cyber-inspect.netlify.app","http://localhost:3000", "http://127.0.0.1:5500"]
 
     SEED_DEFAULT_USERS: bool = False
 

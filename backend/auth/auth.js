@@ -1,4 +1,5 @@
 // ---------- Authentication (pure API calls, shared by every page) ----------
+const API = "https://cyberinspect-rebk.onrender.com";
 async function apiLogin(email, password){
   const body = new URLSearchParams({username:email, password});
   const res = await fetch(API+'/api/auth/login', {method:'POST',
