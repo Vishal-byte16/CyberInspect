@@ -35,3 +35,13 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 @router.get("/me", response_model=schemas.UserOut)
 def me(current=Depends(security.get_current_user)):
     return current
+
+
+@router.patch("/me", response_model=schemas.UserOut)
+def update_me(payload: schemas.UserUpdate, db: Session = Depends(get_db),
+              current=Depends(security.get_current_user)):
+    if not payload.name.strip():
+        raise HTTPException(400, "Name cannot be empty")
+    current.name = payload.name.strip()
+    db.add(current); db.commit(); db.refresh(current)
+    return current

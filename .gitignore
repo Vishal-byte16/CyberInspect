@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+*.db
+.vscode/
+CyberInspect_Backup_Working/
+node_modules/

@@ -1,13 +1,13 @@
 /* ============================================================
    CyberInspect — Premium UI  |  White + Cyan + Dark Blue
 ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 html {scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
 .hidden{display:none!important}
 .mono{font-family:'JetBrains Mono',monospace}
-h1,h2,h3,.brand-text,.stat-val,.score-num b{font-family:'Sora',sans-serif}
+h1,h2,h3,.brand-text,.stat-val,.score-num b{font-family:'Space Grotesk',sans-serif}
 ::selection{background:var(--cyan);color:var(--navy)}
 
 /* Animated background mesh (global) */
@@ -24,7 +24,7 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;
   mask-image:radial-gradient(circle at 50% 30%,black,transparent 85%);}
 
  /* ===== Buttons ===== */
-.btn{border:none;cursor:pointer;font-family:'Sora',sans-serif;font-weight:600;border-radius:12px;
+.btn{border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;border-radius:12px;
   padding:12px 20px;font-size:14px;transition:.25s cubic-bezier(.4,0,.2,1);
   display:inline-flex;align-items:center;gap:8px;position:relative;overflow:hidden}
 .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-2));color:#03222a;
@@ -84,7 +84,7 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;
   background:var(--cyan);border-radius:3px;box-shadow:0 0 12px var(--cyan-glow)}
 .sidebar-footer{padding:14px;border-radius:16px;background:var(--glass);border:1px solid var(--line)}
 .user-mini{display:flex;align-items:center;gap:11px;margin-bottom:12px}
-.avatar{width:42px;height:42px;border-radius:13px;font-weight:700;font-family:'Sora';
+.avatar{width:42px;height:42px;border-radius:13px;font-weight:700;font-family:'Space Grotesk';
   background:linear-gradient(135deg,var(--cyan),var(--cyan-2));color:var(--navy);
   display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(34,230,230,.35)}
 .user-mini-name{font-size:14px;font-weight:600}
@@ -108,7 +108,7 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;
 .score-hero .mono{color:var(--slate)}
 
 .risk-badge{display:inline-block;padding:7px 18px;border-radius:22px;font-weight:700;font-size:12.5px;
-  font-family:'Sora';border:1px solid transparent}
+  font-family:'Space Grotesk';border:1px solid transparent}
 .risk-critical{background:rgba(255,91,110,.14);color:var(--red);border-color:rgba(255,91,110,.4);box-shadow:0 0 20px rgba(255,91,110,.2)}
 .risk-high{background:rgba(255,159,69,.14);color:var(--orange);border-color:rgba(255,159,69,.4)}
 .risk-medium{background:rgba(255,203,61,.14);color:var(--yellow);border-color:rgba(255,203,61,.4)}

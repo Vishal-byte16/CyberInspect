@@ -53,8 +53,8 @@ def calculate_score(data: dict) -> tuple[int, str]:
 
 
 def risk_level(score: int) -> str:
-    if score >= 90: return "Very Low"
+    if score >= 90: return "Excellent"
     if score >= 75: return "Low"
-    if score >= 50: return "Moderate"
-    if score >= 25: return "High"
+    if score >= 60: return "Medium"
+    if score >= 40: return "High"
     return "Critical"

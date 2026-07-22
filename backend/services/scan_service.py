@@ -15,17 +15,47 @@ def run_full_scan(full_url: str) -> dict:
         full_url = "https://" + full_url
     host = urlparse(full_url).netloc.split(":")[0]
 
+    ssl_result = analyze_ssl(host)
+    # If HTTPS genuinely isn't available, re-run the live checks against
+    # plain HTTP instead of letting them fail pointlessly against a port
+    # that never answered.
+    request_url = full_url
+    if not ssl_result["https"] and full_url.startswith("https://"):
+        request_url = "http://" + host
+
+    headers_result = analyze_headers(request_url)
+    http_result = analyze_http(request_url)
+    tech_result = detect_technology(request_url)
+
     data = {
-        "ssl": analyze_ssl(host),
-        "headers": analyze_headers(full_url),
+        "ssl": ssl_result,
+        "headers": headers_result,
         "dns": analyze_dns(host),
-        "http": analyze_http(full_url),
-        "cookies": analyze_cookies(full_url),
+        "http": http_result,
+        "cookies": analyze_cookies(request_url),
         "domain": analyze_domain(host),
         "reputation": analyze_reputation(host),
-        "tech": detect_technology(full_url),
+        "tech": tech_result,
     }
+
+    # If the live HTTP layer never got a response on either scheme, this
+    # wasn't a real security assessment — say so explicitly rather than
+    # presenting defaulted/empty fields as confirmed findings.
+    if http_result.get("status") == 0:
+        data["connection_error"] = (
+            "Could not connect to this site over HTTPS or HTTP "
+            f"({http_result.get('error', 'connection failed')}). "
+            "The results below reflect DNS/reputation checks only — "
+            "header, SSL, and technology findings could not be verified."
+        )
+
     score, risk = calculate_score(data)
-    data.update({"url": host, "full_url": full_url,
+    data.update({"url": host, "full_url": request_url,
                  "score": score, "risk": risk})
+
+    # A connection failure isn't a confirmed security finding — don't let it
+    # masquerade as a scored, Critical-risk assessment.
+    if "connection_error" in data:
+        data["risk"] = "Incomplete"
+
     return data

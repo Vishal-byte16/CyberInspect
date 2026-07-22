@@ -266,23 +266,6 @@ function mockScan(url) {
     };
 }
 
-// ================================
-// Quick Scan (Top Navigation)
-// ================================
-
-function quickScan() {
-    const url = document.getElementById('quick-scan-url').value.trim();
-
-    if (!url) return;
-
-    navigate('scanner');
-
-    setTimeout(() => {
-        document.getElementById('scan-url').value = url;
-        runScan();
-    }, 120);
-}
-
 // ---------- Render Scanner ----------
 function renderScanner(c){
   c.innerHTML=`
@@ -299,6 +282,12 @@ function renderScanner(c){
       </div>
     </div>
     <div id="scan-output"></div>`;
+  // Support arriving via quick-scan with ?url= prefilled and auto-run
+  const prefill = new URLSearchParams(location.search).get('url');
+  if(prefill){
+    document.getElementById('scan-url').value = prefill;
+    runScan();
+  }
 }
 
 function runScan(){
@@ -353,7 +342,7 @@ function renderResult(r, container){
     <div class="card mb">
       <div class="flex between center wrap gap">
         <div class="score-hero">
-          ${scoreRing(r.score)}
+          ${scoreRing(r.score, r.risk)}
           <div>
             <h2>${r.url}</h2>
             <p class="muted mono">${r.fullUrl}</p>
@@ -369,11 +358,16 @@ function renderResult(r, container){
       </div>
     </div>
 
+    ${r.connectionError ? `<div class="card mb" style="border-left:3px solid var(--yellow)">
+      <b>⚠️ Incomplete scan</b>
+      <p class="muted mt" style="font-size:13px;margin-top:6px">${r.connectionError}</p>
+    </div>` : ''}
+
     ${section('🔒 SSL/TLS Analysis',[
       finding(r.ssl.https,'HTTPS Available',r.ssl.https?'Site served over HTTPS':'No HTTPS – data unencrypted'),
-      finding(r.ssl.valid,'Certificate Valid',`Expires ${r.ssl.expires} (${r.ssl.daysToExpiry} days)`),
+      finding(r.ssl.valid,'Certificate Valid',r.ssl.expires?`Expires ${r.ssl.expires} (${r.ssl.daysToExpiry} days)`:'No certificate presented'),
       findingInfo('Certificate Issuer',r.ssl.issuer),
-      finding(r.ssl.chainComplete,'Certificate Chain','Complete chain of trust'),
+      finding(r.ssl.chainComplete,'Certificate Chain',r.ssl.chainComplete?'Complete chain of trust':'Chain could not be verified'),
       findingInfo('Supported TLS',r.ssl.tls.map(t=>`<span class="tag">${t}</span>`).join('')),
     ])}
 
@@ -381,13 +375,35 @@ function renderResult(r, container){
       r.headers.map(h=>finding(h.present,h.name,h.present?'Header present':'Missing – recommended to add')))}
 
     ${section('🌍 Domain Information',[
-      findingInfo('Domain Age',r.domain.age),
-      findingInfo('Registrar',r.domain.registrar),
-      findingInfo('Domain Expires',r.domain.expires),
-      findingInfo('IP Address',r.domain.ip),
-      findingInfo('Hosting Provider',r.domain.host),
-    ])}
+  findingInfo('Domain Age', r.domain.age),
+  findingInfo('Registrar', r.domain.registrar),
+  findingInfo('Creation Date', r.domain.created),
+  findingInfo('Last Updated', r.domain.updated),
+  findingInfo('Domain Expires', r.domain.expires),
 
+  findingInfo(
+    'Name Servers',
+    Array.isArray(r.domain.name_servers) && r.domain.name_servers.length
+      ? r.domain.name_servers.join('<br>')
+      : 'Unknown'
+  ),
+
+  findingInfo('DNSSEC', r.domain.dnssec),
+
+  findingInfo(
+    'WHOIS Status',
+    Array.isArray(r.domain.status) && r.domain.status.length
+      ? r.domain.status.join('<br>')
+      : 'Unknown'
+  ),
+
+  findingInfo('IP Address', r.domain.ip),
+  findingInfo('Hosting Provider', r.domain.host),
+
+  ...(r.domain.lookupError
+      ? [findingInfo('WHOIS Lookup', `⚠️ ${r.domain.lookupError}`)]
+      : []),
+])}
     ${section('🌐 DNS Analysis',[
       findingInfo('A Record',r.dns.A), findingInfo('AAAA Record',r.dns.AAAA),
       findingInfo('MX Record',r.dns.MX), findingInfo('NS Record',r.dns.NS),
@@ -412,7 +428,7 @@ function renderResult(r, container){
     ])}
 
     ${section('📡 HTTP Analysis',[
-      findingInfo('Status Code',r.http.status),
+      findingInfo('Status Code',r.http.status===0?'Unreachable':r.http.status),
       findingInfo('Redirect Chain',r.http.redirects.join(' → ')),
       finding(r.http.server==='Hidden (good)','Server Disclosure',r.http.server==='Hidden (good)'?'Server header hidden':'Server: '+r.http.server),
     ])}
@@ -425,27 +441,32 @@ function renderResult(r, container){
       findingInfo('Reverse Proxy',r.tech.proxy),
     ])}`;
 
-  animateScore(r.score);
+  animateScore(r.score, r.risk);
   container.scrollIntoView({behavior:'smooth'});
 }
 
 // ---------- Save website ----------
 
-function saveWebsite(url){
-  const saved=DB.saved;
-  if(saved.find(s=>s.url===url&&s.userId===currentUser.id)){ toast('Already saved.','warn'); return; }
-  saved.push({url,userId:currentUser.id,date:new Date().toISOString()}); DB.saved=saved;
-  toast('Website saved!','success');
+async function saveWebsite(url){
+  try{ await apiSavedAdd(url); toast('Website saved!','success'); }
+  catch(e){ toast(e.message==='Already saved'?'Already saved.':'Save failed: '+e.message, e.message==='Already saved'?'warn':'error'); }
 }
 
 
-function scoreRing(score){
-  const color = score>=90?'#22e6e6':score>=75?'#22e39a':score>=60?'#ffcb3d':score>=40?'#ff9f45':'#ff5b6e';
+function scoreRing(score, risk){
+  if(risk === 'Incomplete'){
+    return `<div class="score-ring"><svg width="160" height="160">
+      <circle cx="80" cy="80" r="68" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none"/>
+      <circle cx="80" cy="80" r="68" stroke="var(--slate)" stroke-width="12" fill="none"
+        stroke-dasharray="6 10" stroke-linecap="round" opacity=".5"/>
+      </svg><div class="score-num"><b style="color:var(--slate);font-size:22px">N/A</b><small>not assessed</small></div></div>`;
+  }
+  const color = score>=90?'#00B8D9':score>=75?'#22C55E':score>=60?'#FACC15':score>=40?'#FB923C':'#EF4444';
   const r=68, circ=2*Math.PI*r;
   const uid='sg'+Math.floor(Math.random()*100000);
   return `<div class="score-ring"><svg width="160" height="160">
     <defs><linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${color}"/><stop offset="100%" stop-color="#00c2d4"/></linearGradient></defs>
+      <stop offset="0%" stop-color="${color}"/><stop offset="100%" stop-color="#00A6C4"/></linearGradient></defs>
     <circle cx="80" cy="80" r="${r}" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none"/>
     <circle cx="80" cy="80" r="${r}" stroke="url(#${uid})" stroke-width="12" fill="none"
       stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round"
@@ -456,7 +477,8 @@ function scoreRing(score){
 
 
 // Animate ring stroke + count-up number
-function animateScore(target){
+function animateScore(target, risk){
+  if(risk === 'Incomplete') return;
   const ring=document.querySelector('.ring-anim');
   const numEl=document.querySelector('.score-num b');
   if(ring){ const r=68,circ=2*Math.PI*r;

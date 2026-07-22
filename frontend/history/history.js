@@ -1,29 +1,4 @@
-/* ============================================================
-   CyberInspect – Frontend Application Logic 
-============================================================ */
-
-// Restore session
-// Session restore will be implemented later using JWT.
-// ---------- Navigation ----------
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click', ()=> navigate(item.dataset.page));
-});
-function skeletonRows(n){
-  return `<div class="card">${Array.from({length:n}).map(()=>
-    `<div class="skeleton skel-line" style="width:${60+Math.random()*35}%"></div>`).join('')}</div>`;
-}
-function navigate(page){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
-  const titles={dashboard:'Dashboard',scanner:'Website Security Scanner',history:'Scan History',
-    saved:'Saved Websites',profile:'User Profile',admin:'Admin Dashboard'};
-  document.getElementById('page-title').textContent=titles[page]||'';
-  const c=document.getElementById('content');
-  c.style.animation='none'; requestAnimationFrame(()=> c.style.animation='fadeUp .45s');
-  ({dashboard:renderDashboard,scanner:renderScanner,history:renderHistory,
-    saved:renderSaved,profile:renderProfile,admin:renderAdmin}[page])(c);
-}
-
-// ---------- History ----------
+// ---------- History Page ----------
 async function renderHistory(c){
   c.innerHTML=skeletonRows(5);
   let scans=[];
@@ -42,14 +17,14 @@ async function renderHistory(c){
 }
 function histRow(s){ return `<tr data-url="${s.url}">
   <td><b>${s.url}</b></td><td>${new Date(s.date).toLocaleDateString()}</td>
-  <td><b style="font-family:'Space Grotesk'">${s.score}</b></td><td><span class="risk-badge risk-${s.risk.toLowerCase()}">${s.risk}</span></td>
+  <td><b style="font-family:'Space Grotesk'">${s.risk==='Incomplete'?'—':s.score}</b></td><td><span class="risk-badge risk-${s.risk.toLowerCase()}">${s.risk}</span></td>
   <td><div class="flex gap"><button class="btn btn-outline btn-sm" onclick="openReport(${s.id})">View</button>
   <button class="btn btn-danger btn-sm" onclick="deleteScan(${s.id})">Delete</button></div></td></tr>`; }
 function filterHistory(){ const q=document.getElementById('hist-search').value.toLowerCase();
   document.querySelectorAll('#hist-body tr').forEach(r=>{
     r.style.display=(r.dataset.url||'').includes(q)?'':'none'; }); }
 async function deleteScan(id){ if(!confirm('Delete this scan?'))return;
-  try{ await apiDeleteScan(id); navigate('history'); toast('Scan deleted.','info'); }
+  try{ await apiDeleteScan(id); toast('Scan deleted.','info'); location.reload(); }
   catch(e){ toast('Delete failed: '+e.message,'error'); } }
 async function compareLast(){
   const all=await apiHistory();

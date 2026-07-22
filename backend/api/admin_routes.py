@@ -9,7 +9,8 @@ router = APIRouter(prefix="/api/admin", tags=["Admin"])
 @router.get("/stats")
 def stats(db: Session = Depends(get_db), admin=Depends(require_admin)):
     scans = db.query(WebsiteScan).all()
-    avg = round(sum(s.score for s in scans) / len(scans)) if scans else 0
+    scored = [s for s in scans if s.risk_level != "Incomplete"]
+    avg = round(sum(s.score for s in scored) / len(scored)) if scored else 0
     return {"users": db.query(User).count(), "scans": len(scans),
             "avg_score": avg,
             "high_risk": sum(1 for s in scans if s.risk_level in ("High", "Critical"))}

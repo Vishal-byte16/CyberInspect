@@ -1,11 +1,25 @@
 :root{
-  --navy:#050b1f; --navy-2:#0a1435; --dark-blue:#0d1f4c; --dark-blue-2:#122a63;
-  --cyan:#22e6e6; --cyan-2:#00c2d4; --cyan-glow:rgba(34,230,230,.5);
-  --white:#ffffff; --ink:#0a1330; --slate:#8a9bc4; --slate-2:#5b6b93;
-  --line:rgba(34,230,230,.12); --line-solid:#e4ebf5;
-  --green:#22e39a; --yellow:#ffcb3d; --orange:#ff9f45; --red:#ff5b6e;
-  --glass:rgba(255,255,255,.06); --glass-hi:rgba(255,255,255,.1);
-  --radius:18px; --radius-sm:12px;
-  --shadow:0 20px 60px rgba(3,10,30,.5);
-  --shadow-cyan:0 12px 40px rgba(34,230,230,.28);
+  /* Core brand palette (spec) */
+  --bg:#07111D; --surface:#101B2D; --card-bg:#162238;
+  --primary:#00B8D9; --primary-2:#00A6C4; --primary-glow:rgba(0,184,217,.45);
+  --success:#22C55E; --warning:#FACC15; --danger:#EF4444; --orange:#FB923C;
+  --text:#F8FAFC; --text-2:#94A3B8;
+
+  /* Back-compat aliases (existing CSS/JS reference these names) */
+  --navy:var(--bg); --navy-2:var(--surface); --dark-blue:var(--surface); --dark-blue-2:var(--card-bg);
+  --cyan:var(--primary); --cyan-2:var(--primary-2); --cyan-glow:var(--primary-glow);
+  --white:var(--text); --ink:var(--bg); --slate:var(--text-2); --slate-2:#64748B;
+  --line:rgba(148,163,184,.14); --line-solid:#1E293B;
+  --green:var(--success); --yellow:var(--warning); --red:var(--danger);
+  --glass:rgba(248,250,252,.04); --glass-hi:rgba(248,250,252,.08);
+
+  --radius:16px; --radius-sm:10px; --radius-lg:20px;
+  --shadow:0 20px 50px rgba(2,6,15,.55);
+  --shadow-cyan:0 10px 30px rgba(0,184,217,.25);
+  --shadow-sm:0 4px 16px rgba(2,6,15,.35);
+
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }

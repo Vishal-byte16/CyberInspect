@@ -12,6 +12,22 @@ router = APIRouter(prefix="/api/scan", tags=["Scanner"])
 class ScanRequest(BaseModel):
     url: str
 
+def _shape(scan: WebsiteScan) -> dict:
+    """Map DB/scan-engine field names onto what the frontend actually expects."""
+    data = dict(scan.result or {})
+    data["fullUrl"] = data.get("full_url")
+    data["rep"] = data.get("reputation")
+    if isinstance(data.get("headers"), dict):
+        data["headers"] = data["headers"].get("headers", [])
+    if isinstance(data.get("ssl"), dict):
+        data["ssl"]["daysToExpiry"] = data["ssl"].get("days_to_expiry")
+        data["ssl"]["chainComplete"] = data["ssl"].get("chain_complete")
+    if data.get("connection_error"):
+        data["connectionError"] = data["connection_error"]
+    if isinstance(data.get("domain"), dict) and data["domain"].get("error"):
+        data["domain"]["lookupError"] = data["domain"]["error"]
+    return {"id": scan.id, "date": scan.created_at, **data}
+
 @router.post("")
 def create_scan(req: ScanRequest, db: Session = Depends(get_db),
                 user=Depends(get_current_user)):
@@ -28,7 +44,7 @@ def create_scan(req: ScanRequest, db: Session = Depends(get_db),
         db.add(SecurityFinding(scan_id=scan.id, **fd))
     db.commit()
 
-    return {"id": scan.id, "created_at": scan.created_at, **data}
+    return _shape(scan)
 
 @router.get("/history")
 def history(db: Session = Depends(get_db), user=Depends(get_current_user)):
@@ -42,7 +58,7 @@ def get_scan(scan_id: int, db: Session = Depends(get_db), user=Depends(get_curre
     s = db.query(WebsiteScan).filter(WebsiteScan.id == scan_id,
                                      WebsiteScan.user_id == user.id).first()
     if not s: raise HTTPException(404, "Scan not found")
-    return {"id": s.id, "date": s.created_at, **s.result}
+    return _shape(s)
 
 @router.delete("/{scan_id}")
 def delete_scan(scan_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):

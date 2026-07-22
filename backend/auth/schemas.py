@@ -10,6 +10,9 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UserUpdate(BaseModel):
+    name: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
