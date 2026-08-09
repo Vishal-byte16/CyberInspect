@@ -53,7 +53,7 @@ def calculate_score(data: dict) -> tuple[int, str]:
     # Response time
     rating = http.get("response_time_rating", "")
 
-    if rating == "Excellent":
+    if rating == "Very_Low":
         score += 4
     elif rating == "Good":
         score += 3
@@ -75,7 +75,7 @@ def calculate_score(data: dict) -> tuple[int, str]:
 
 
 def risk_level(score: int) -> str:
-    if score >= 90: return "Excellent"
+    if score >= 90: return "Very Low"
     if score >= 75: return "Low"
     if score >= 60: return "Medium"
     if score >= 40: return "High"

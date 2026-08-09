@@ -33,7 +33,7 @@ STATUS_INFO = {
 
 def get_response_rating(ms):
     if ms <= 300:
-        return "Excellent"
+        return "Very_Low"
     elif ms <= 800:
         return "Good"
     elif ms <= 1500:

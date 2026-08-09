@@ -239,7 +239,7 @@ function mockScan(url) {
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     const risk =
-        score >= 90 ? 'Excellent' :
+        score >= 90 ? 'Very_Low' :
         score >= 75 ? 'Low' :
         score >= 60 ? 'Medium' :
         score >= 40 ? 'High' :

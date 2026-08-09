@@ -113,7 +113,7 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;
 .risk-high{background:rgba(255,159,69,.14);color:var(--orange);border-color:rgba(255,159,69,.4)}
 .risk-medium{background:rgba(255,203,61,.14);color:var(--yellow);border-color:rgba(255,203,61,.4)}
 .risk-low{background:rgba(34,227,154,.14);color:var(--green);border-color:rgba(34,227,154,.4)}
-.risk-excellent{background:rgba(34,230,230,.14);color:var(--cyan);border-color:rgba(34,230,230,.45);box-shadow:0 0 20px var(--cyan-glow)}
+.risk-very-low{background:rgba(34,230,230,.14);color:var(--cyan);border-color:rgba(34,230,230,.45);box-shadow:0 0 20px var(--cyan-glow)}
 
 /* ===== Result Sections ===== */
 .result-section{padding:0;overflow:hidden}

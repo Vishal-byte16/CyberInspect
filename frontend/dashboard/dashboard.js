@@ -41,7 +41,7 @@ async function renderDashboard(c){
 function statCard(icon,val,label){ return `<div class="card stat-card">
   <div class="stat-icon">${icon}</div><div class="stat-val">${val}</div><div class="stat-label">${label}</div></div>`; }
 function scoreDistribution(scans){
-  const buckets={Excellent:0,Low:0,Medium:0,High:0,Critical:0};
+  const buckets={Very_Low:0,Low:0,Medium:0,High:0,Critical:0};
   scans.forEach(s=>{ if(buckets[s.risk]===undefined) buckets[s.risk]=0; buckets[s.risk]++; });
   const total=scans.length;
   return Object.entries(buckets).map(([k,v])=>`
