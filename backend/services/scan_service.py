@@ -38,7 +38,7 @@ def run_full_scan(full_url: str) -> dict:
         "http": http_result,
         "cookies": analyze_cookies(request_url),
         "domain": analyze_domain(host),
-        "reputation": analyze_reputation(host),
+        "reputation": analyze_reputation(request_url),
         "tech": tech_result,
         "ports": scan_ports(host),
     }
