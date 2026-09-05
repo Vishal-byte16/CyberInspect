@@ -38,14 +38,14 @@ def calculate_score(data: dict) -> tuple[int, str]:
             score += WEIGHTS["reputation"]
     # else: not evaluated -> 0 points, no fabricated "clean" credit
 
-    # Cookies (10) — only earn points for attributes actually confirmed
-    # present; a scan error or absence of cookies earns nothing (not a
-    # free baseline).
-    if not cookies.get("error"):
+    if cookies.get("error"):
+        pass  # unknown - no points either way
+    elif cookies.get("count", 0) == 0:
+        score += WEIGHTS["cookies"]  # no cookies set - nothing to penalize
+    else:
         if cookies.get("secure"): score += 4
         if cookies.get("httpOnly"): score += 3
         if cookies.get("sameSite"): score += 3
-
     # HTTP (10)
     if http.get("status") in (200, 301, 302):
         score += 4
