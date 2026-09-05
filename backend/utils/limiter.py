@@ -1,27 +1,5 @@
-"""
-Shared rate-limiter instance (slowapi / limits) used by main.py and by any
-route module that needs to throttle an endpoint. Kept in its own module so
-route files can import it without creating a circular import with main.py.
-"""
-
-try:
-	from slowapi import Limiter
-except ImportError:
-	class Limiter:
-		def __init__(self, *args, **kwargs):
-			self.args = args
-			self.kwargs = kwargs
-
-		def limit(self, *args, **kwargs):
-			def decorator(func):
-				return func
-
-			return decorator
-
-
-def get_remote_address(request):
-	client = getattr(request, "client", None)
-	return getattr(client, "host", "unknown")
-
+"""Shared rate limiter (avoids circular import between main.py and routes)."""
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)

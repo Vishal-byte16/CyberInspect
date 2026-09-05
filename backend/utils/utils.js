@@ -3,6 +3,14 @@
 // ==========================================
 
 
+// ---------- HTML escaping (prevents XSS from scanner/user-controlled values) ----------
+function escapeHtml(str){
+  if(str===null||str===undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // ---------- Toast notifications (replaces alerts) ----------
 function toast(msg, type='info'){
   let host = document.getElementById('toast-host');
@@ -17,7 +25,7 @@ function toast(msg, type='info'){
     border:1px solid ${colors[type]}55;box-shadow:0 12px 34px rgba(2,6,15,.5),0 0 20px ${colors[type]}22;
     min-width:240px;max-width:340px;transform:translateX(120%);
     transition:transform .4s cubic-bezier(.2,.8,.2,1);font-family:Inter,sans-serif`;
-  el.innerHTML=`<span style="font-size:17px">${icons[type]}</span><span>${msg}</span>`;
+  el.innerHTML=`<span style="font-size:17px">${icons[type]}</span><span>${escapeHtml(msg)}</span>`;
   host.appendChild(el);
   requestAnimationFrame(()=>el.style.transform='translateX(0)');
   setTimeout(()=>{ el.style.transform='translateX(120%)'; setTimeout(()=>el.remove(),400); },3000);

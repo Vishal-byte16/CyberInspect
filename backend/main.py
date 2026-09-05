@@ -18,11 +18,8 @@ Base.metadata.create_all(bind=engine)
 
 
 def seed_default_users():
-    """Creates a demo admin + analyst login. Only ever runs when
-    SEED_DEFAULT_USERS=True is explicitly set (see utils/config.py), which
-    is blocked outright when ENVIRONMENT=production. Never let this run
-    unguarded again - it's how the site would ship with a public admin
-    login of admin@cyberinspect.io / admin123."""
+    """Only runs when SEED_DEFAULT_USERS=True (blocked outright in production
+    by config.py). Creates the demo admin/analyst logins for local testing."""
     db = SessionLocal()
     try:
         defaults = [

@@ -7,6 +7,7 @@ from backend.scanner.cookie_analyzer import analyze_cookies
 from backend.scanner.domain_analyzer import analyze_domain
 from backend.scanner.reputation_analyzer import analyze_reputation
 from backend.scanner.tech_detector import detect_technology
+from backend.scanner.port_scanner import scan_ports
 from backend.services.scoring import calculate_score
 from backend.utils.ssrf_guard import assert_safe_target
 
@@ -14,11 +15,8 @@ from backend.utils.ssrf_guard import assert_safe_target
 def run_full_scan(full_url: str) -> dict:
     if not full_url.startswith(("http://", "https://")):
         full_url = "https://" + full_url
-
-    # SSRF guard: refuses to proceed if this host resolves to a private/
-    # internal/loopback address (localhost, internal network, cloud
-    # metadata endpoint, etc). Raises UnsafeScanTargetError otherwise,
-    # which the API route turns into a 400.
+    # SSRF guard: rejects loopback/private/internal/link-local/metadata hosts
+    # before any scanner module ever makes an outbound request.
     host = assert_safe_target(full_url)
 
     ssl_result = analyze_ssl(host)
@@ -42,16 +40,17 @@ def run_full_scan(full_url: str) -> dict:
         "domain": analyze_domain(host),
         "reputation": analyze_reputation(host),
         "tech": tech_result,
+        "ports": scan_ports(host),
     }
 
     # If the live HTTP layer never got a response on either scheme, this
-    # wasn't a real security assessment - say so explicitly rather than
+    # wasn't a real security assessment — say so explicitly rather than
     # presenting defaulted/empty fields as confirmed findings.
     if http_result.get("status") == 0:
         data["connection_error"] = (
             "Could not connect to this site over HTTPS or HTTP "
             f"({http_result.get('error', 'connection failed')}). "
-            "The results below reflect DNS/reputation checks only - "
+            "The results below reflect DNS/reputation checks only — "
             "header, SSL, and technology findings could not be verified."
         )
 
@@ -59,7 +58,7 @@ def run_full_scan(full_url: str) -> dict:
     data.update({"url": host, "full_url": request_url,
                  "score": score, "risk": risk})
 
-    # A connection failure isn't a confirmed security finding - don't let it
+    # A connection failure isn't a confirmed security finding — don't let it
     # masquerade as a scored, Critical-risk assessment.
     if "connection_error" in data:
         data["risk"] = "Incomplete"

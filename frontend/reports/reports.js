@@ -50,7 +50,7 @@ async function renderReportPage(c){
   c.innerHTML = '<div class="card">Loading report…</div>';
   let r;
   try{ r = await apiGetScan(id); }
-  catch(e){ c.innerHTML = '<div class="card">Could not load report: '+e.message+'</div>'; return; }
+  catch(e){ c.innerHTML = '<div class="card">Could not load report: '+escapeHtml(e.message)+'</div>'; return; }
   c.innerHTML = `<div class="flex between center mb wrap gap">
       <h2>Scan Report</h2>
       <div class="flex gap">

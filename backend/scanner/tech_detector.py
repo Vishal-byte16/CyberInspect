@@ -1,4 +1,4 @@
-import requests
+from backend.utils.safe_http import safe_get
 from backend.scanner.fingerprints import FINGERPRINTS
 from bs4 import BeautifulSoup
 
@@ -25,10 +25,8 @@ def detect_technology(url: str) -> dict:
 
     try:
 
-        r = requests.get(
+        r = safe_get(
             url,
-            timeout=8,
-            allow_redirects=True,
             headers={
                 "User-Agent": (
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

@@ -15,8 +15,8 @@ async function renderAdmin(c){
     </div>
     <div class="card mb"><div class="section-title">👥 Manage Users</div>
       <table class="table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Scans</th><th></th></tr></thead>
-      <tbody>${users.map(u=>`<tr><td><b>${u.name}</b></td><td>${u.email}</td>
-        <td><span class="pill ${u.role==='admin'?'pill-red':'pill-green'}">${u.role}</span></td>
+      <tbody>${users.map(u=>`<tr><td><b>${escapeHtml(u.name)}</b></td><td>${escapeHtml(u.email)}</td>
+        <td><span class="pill ${u.role==='admin'?'pill-red':'pill-green'}">${escapeHtml(u.role)}</span></td>
         <td>${new Date(u.joined).toLocaleDateString()}</td><td>${u.scans}</td>
         <td>${u.id!==currentUser.id?`<button class="btn btn-danger btn-sm" onclick="delUser(${u.id})">Remove</button>`:'<span class="muted">You</span>'}</td>
       </tr>`).join('')}</tbody></table>

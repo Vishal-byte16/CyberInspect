@@ -1,5 +1,5 @@
 import time
-import requests
+from backend.utils.safe_http import safe_get
 
 BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -33,7 +33,7 @@ STATUS_INFO = {
 
 def get_response_rating(ms):
     if ms <= 300:
-        return "Very_Low"
+        return "Excellent"
     elif ms <= 800:
         return "Good"
     elif ms <= 1500:
@@ -47,19 +47,14 @@ def analyze_http(url: str) -> dict:
     try:
         start = time.perf_counter()
 
-        r = requests.get(
-            url,
-            timeout=8,
-            allow_redirects=True,
-            headers={"User-Agent": BROWSER_UA},
-        )
+        r = safe_get(url, headers={"User-Agent": BROWSER_UA})
 
         elapsed = round((time.perf_counter() - start) * 1000)
 
         redirects = []
 
-        for h in r.history:
-            redirects.append(f"{h.status_code} → {h.headers.get('Location','')}")
+        for status_code, location in getattr(r, "redirect_chain", []):
+            redirects.append(f"{status_code} → {location}")
 
         if not redirects:
             redirects = ["No redirects"]

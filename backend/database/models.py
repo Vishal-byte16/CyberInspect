@@ -56,9 +56,15 @@ class SecurityFinding(Base):
     scan_id = Column(Integer, ForeignKey("website_scans.id"))
     category = Column(String)          # SSL/TLS, Headers, DNS...
     title = Column(String)
-    status = Column(String)            # pass | fail | info
+    status = Column(String)            # pass | fail | warning | not_evaluated | error
     detail = Column(Text)
     severity = Column(String, default="info")   # info|low|medium|high|critical
+    confidence = Column(String, default="high", nullable=True)   # high|medium|low
+    impact = Column(Text, nullable=True)
+    recommendation = Column(Text, nullable=True)
+    evidence = Column(Text, nullable=True)
+    owasp = Column(String, nullable=True)
+    cwe = Column(String, nullable=True)
     scan = relationship("WebsiteScan", back_populates="findings")
 
 

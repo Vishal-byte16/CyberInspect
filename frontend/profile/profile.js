@@ -6,11 +6,11 @@ async function renderProfile(c){
   catch(e){ toast('Could not load profile: '+e.message,'error'); }
   c.innerHTML=`<div class="grid grid-2">
     <div class="card"><div class="section-title">👤 Profile</div>
-      <div class="flex center gap mb"><div class="avatar" style="width:64px;height:64px;font-size:24px;border-radius:18px">${currentUser.name[0].toUpperCase()}</div>
-      <div><h3>${currentUser.name}</h3><p class="muted">${currentUser.email}</p>
-      <span class="pill ${currentUser.role==='admin'?'pill-red':'pill-green'}">${currentUser.role}</span></div></div>
-      <div class="input-group"><label>Full Name</label><input id="pf-name" value="${currentUser.name}"></div>
-      <div class="input-group"><label>Email</label><input id="pf-email" value="${currentUser.email}" disabled></div>
+      <div class="flex center gap mb"><div class="avatar" style="width:64px;height:64px;font-size:24px;border-radius:18px">${escapeHtml(currentUser.name[0].toUpperCase())}</div>
+      <div><h3>${escapeHtml(currentUser.name)}</h3><p class="muted">${escapeHtml(currentUser.email)}</p>
+      <span class="pill ${currentUser.role==='admin'?'pill-red':'pill-green'}">${escapeHtml(currentUser.role)}</span></div></div>
+      <div class="input-group"><label>Full Name</label><input id="pf-name" value="${escapeHtml(currentUser.name)}"></div>
+      <div class="input-group"><label>Email</label><input id="pf-email" value="${escapeHtml(currentUser.email)}" disabled></div>
       <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
     </div>
     <div class="card"><div class="section-title">📊 Your Activity</div>
@@ -42,7 +42,7 @@ async function renderSaved(c){
     ${saved.length?saved.map(s=>`<div class="flex between center" style="padding:14px 0;border-bottom:1px solid var(--line)">
       <div><b>${s.url}</b><div class="muted" style="font-size:12px">Saved ${new Date(s.date).toLocaleDateString()}</div></div>
       <div class="flex gap">
-      <button class="btn btn-primary btn-sm" onclick="quickScanUrl('${s.url}')">Rescan</button>
+      <button class="btn btn-primary btn-sm" onclick="quickScanUrl(${JSON.stringify(s.url).replace(/"/g, '&quot;')})">Rescan</button>
       <button class="btn btn-danger btn-sm" onclick="unsave(${s.id})">Remove</button></div></div>`).join('')
       :'<p class="muted">No saved websites yet. Save a site from a scan result.</p>'}</div>`;
 }

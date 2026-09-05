@@ -116,16 +116,23 @@ function mockScan(url) {
             'Cloudflare Inc.',
             'Google Domains'
         ]),
+      created: dateFromNow(-rand(365, 3650)),
+      updated: dateFromNow(-rand(1, 365)),
         expires: dateFromNow(rand(30, 700)),
         ip: `${rand(1,220)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`,
-        host: pick([
+      host: pick([
             'Cloudflare',
             'AWS',
             'Google Cloud',
             'DigitalOcean',
             'Azure'
-        ])
+      ]),
+      name_servers: [],
+      dnssec: yesNo(0.6) ? 'Enabled' : 'Not enabled',
+      status: yesNo(0.8) ? ['ok'] : ['clientTransferProhibited']
     };
+
+    domain.name_servers = [`ns1.${domain.host.toLowerCase().replace(/\s+/g, '')}.com`, `ns2.${domain.host.toLowerCase().replace(/\s+/g, '')}.com`];
 
     // ================================
     // DNS
@@ -158,7 +165,8 @@ function mockScan(url) {
     const rep = {
         blacklisted: yesNo(0.08),
         phishing: yesNo(0.05),
-        malware: yesNo(0.04)
+      malware: yesNo(0.04),
+      evaluated: true
     };
 
     rep.summary =
@@ -183,13 +191,24 @@ function mockScan(url) {
 
     const http = {
         status: pick([200, 200, 200, 301, 403]),
+      status_title: 'OK',
+      status_explanation: 'The server responded successfully to the request.',
+      response_time: rand(50, 900),
         redirects: yesNo(0.4)
             ? ['http → https', 'www → non-www']
             : ['none'],
         server: yesNo(0.5)
             ? pick(['nginx', 'Apache', 'cloudflare', 'LiteSpeed'])
-            : 'Hidden (good)'
+        : 'Hidden'
     };
+
+    if (http.status === 301) {
+      http.status_title = 'Moved Permanently';
+      http.status_explanation = 'The requested resource redirects to a different URL.';
+    } else if (http.status === 403) {
+      http.status_title = 'Forbidden';
+      http.status_explanation = 'The server understood the request but refused to authorize it.';
+    }
 
     // ================================
     // Technologies
@@ -204,6 +223,37 @@ function mockScan(url) {
         proxy: yesNo(0.5)
             ? 'Cloudflare'
             : 'None'
+    };
+
+    // ================================
+    // Ports
+    // ================================
+
+    const riskyPorts = [21, 22, 23, 25, 3389, 5432, 3306, 6379, 27017];
+    const services = {
+      21: 'FTP',
+      22: 'SSH',
+      23: 'Telnet',
+      25: 'SMTP',
+      3389: 'RDP',
+      5432: 'PostgreSQL',
+      3306: 'MySQL',
+      6379: 'Redis',
+      27017: 'MongoDB'
+    };
+
+    const open_ports = riskyPorts
+      .filter(() => yesNo(0.12))
+      .map(port => ({
+        port,
+        service: services[port] || 'Unknown',
+        reason: 'Port appears publicly reachable.'
+      }));
+
+    const ports = {
+      checked: riskyPorts.length,
+      all_closed: open_ports.length === 0,
+      open_ports
     };
 
     if (!tech.js.length) {
@@ -233,13 +283,13 @@ function mockScan(url) {
            ? 0
            : 15;
 
-    score += (tech.cdn !== 'None' ? 4 : 0)
-           + (http.server === 'Hidden (good)' ? 4 : 2);
+        score += (tech.cdn !== 'None' ? 4 : 0)
+          + (http.server === 'Hidden' ? 4 : 2);
 
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     const risk =
-        score >= 90 ? 'Very_Low' :
+        score >= 90 ? 'Excellent' :
         score >= 75 ? 'Low' :
         score >= 60 ? 'Medium' :
         score >= 40 ? 'High' :
@@ -262,7 +312,8 @@ function mockScan(url) {
         rep,
         cookies,
         http,
-        tech
+        tech,
+        ports
     };
 }
 
@@ -277,8 +328,8 @@ function renderScanner(c){
         <button class="btn btn-primary" onclick="runScan()">🔍 Scan Now</button>
       </div>
       <div class="scan-checkbox-row">
-        ${['SSL/TLS','Headers','DNS','Domain','Reputation','Cookies','HTTP','Technology']
-          .map(x=>`<label><input type="checkbox" checked> ${x}</label>`).join('')}
+       ${['SSL/TLS','Headers','DNS','Domain','Reputation','Cookies','HTTP','Technology','Ports']
+  .map(x=>`<label><input type="checkbox" checked> ${x}</label>`).join('')}
       </div>
     </div>
     <div id="scan-output"></div>`;
@@ -300,7 +351,7 @@ function runScan(){
   const steps=['Validating URL','Analyzing SSL/TLS','Checking Security Headers','Resolving DNS Records',
     'Fetching Domain Info','Checking Reputation','Inspecting Cookies','Analyzing HTTP','Detecting Technologies','Calculating Score'];
   out.innerHTML=`<div class="card scan-progress"><div class="spinner"></div>
-    <h3>Scanning ${url}…</h3><div class="scan-steps">${steps.map((s,i)=>
+    <h3>Scanning ${escapeHtml(url)}…</h3><div class="scan-steps">${steps.map((s,i)=>
     `<div class="scan-step" id="step-${i}">⏳ ${s}</div>`).join('')}</div></div>`;
 
   let i=0;
@@ -330,6 +381,11 @@ async function finishScan(url) {
 
     } catch (err) {
 
+        document.getElementById('scan-output').innerHTML = `<div class="card" style="border-left:3px solid var(--red)">
+          <b>❌ Scan failed</b>
+          <p class="muted mt" style="font-size:13px;margin-top:6px">${escapeHtml(err.message)}</p>
+          <button class="btn btn-outline btn-sm mt" onclick="runScan()">Try again</button>
+        </div>`;
         toast(err.message, "error");
 
     }
@@ -338,20 +394,24 @@ async function finishScan(url) {
 
 // ---------- Result Rendering ----------
 function renderResult(r, container){
+  const ports = r.ports || { all_closed: true, checked: 0, open_ports: [] };
+  const redirects = Array.isArray(r?.http?.redirects) ? r.http.redirects : ['Unknown'];
+  const techJs = Array.isArray(r?.tech?.js) ? r.tech.js : [];
+
   container.innerHTML=`
     <div class="card mb">
       <div class="flex between center wrap gap">
         <div class="score-hero">
           ${scoreRing(r.score, r.risk)}
           <div>
-            <h2>${r.url}</h2>
-            <p class="muted mono">${r.fullUrl}</p>
+            <h2>${escapeHtml(r.url)}</h2>
+            <p class="muted mono">${escapeHtml(r.fullUrl)}</p>
             <div class="mt"><span class="risk-badge risk-${r.risk.toLowerCase()}">Risk: ${r.risk}</span></div>
             <p class="muted mt" style="font-size:12px">Scanned ${new Date(r.date).toLocaleString()}</p>
           </div>
         </div>
         <div class="flex gap wrap">
-          <button class="btn btn-outline btn-sm" onclick="saveWebsite('${r.url}')">⭐ Save</button>
+          <button class="btn btn-outline btn-sm" onclick="saveWebsite(${JSON.stringify(r.url).replace(/"/g, '&quot;')})">⭐ Save</button>
           <button class="btn btn-outline btn-sm" onclick="downloadHTML(${r.id})">📄 HTML</button>
           <button class="btn btn-primary btn-sm" onclick="downloadPDF(${r.id})">📑 PDF</button>
         </div>
@@ -360,7 +420,7 @@ function renderResult(r, container){
 
     ${r.connectionError ? `<div class="card mb" style="border-left:3px solid var(--yellow)">
       <b>⚠️ Incomplete scan</b>
-      <p class="muted mt" style="font-size:13px;margin-top:6px">${r.connectionError}</p>
+      <p class="muted mt" style="font-size:13px;margin-top:6px">${escapeHtml(r.connectionError)}</p>
     </div>` : ''}
 
     ${section('🔒 SSL/TLS Analysis',[
@@ -414,11 +474,16 @@ function renderResult(r, container){
       finding(r.dns.DKIM,'DKIM',('DKIM signing '+(r.dns.DKIM?'detected':'not detected'))+' — DKIM is a digital signature proving an email really came from this domain'),
     ], 'Checks this domain\'s core internet setup and whether it\'s protected against attackers sending fake emails pretending to be from it.')}
 
-    ${section('🚨 Website Reputation',[
+    ${section('🚨 Website Reputation', r.rep.evaluated ? [
       finding(!r.rep.blacklisted,'Blacklist Status',r.rep.blacklisted?'Listed on blacklist':'Not blacklisted'),
       finding(!r.rep.phishing,'Phishing Reports',r.rep.phishing?'Phishing reports found':'No phishing reports'),
       finding(!r.rep.malware,'Malware Reports',r.rep.malware?'Malware reports found':'No malware reports'),
-      findingInfo('Summary',r.rep.summary),
+      findingInfo('Summary',escapeHtml(r.rep.summary)),
+    ] : [
+      findingInfo('Blacklist Status','Not Evaluated — no threat-intel provider configured'),
+      findingInfo('Phishing Reports','Not Evaluated'),
+      findingInfo('Malware Reports','Not Evaluated'),
+      findingInfo('Summary',escapeHtml(r.rep.summary)),
     ], 'Checks whether this site has been publicly reported for phishing, malware, or other malicious activity.')}
 
     ${section('🍪 Cookie Security', r.cookies.count===0 ? [
@@ -446,7 +511,7 @@ function renderResult(r, container){
 
     findingInfo(
         'Redirect Chain',
-        r.http.redirects.join('<br>')
+      redirects.map(escapeHtml).join('<br>')
     ),
 
     finding(
@@ -454,18 +519,24 @@ function renderResult(r, container){
         'Server Disclosure',
         r.http.server === 'Hidden'
             ? 'Server header hidden. This is good practice because it reveals less information to attackers.'
-            : `Server: ${r.http.server}`
+            : `Server: ${escapeHtml(r.http.server)}`
     ),
 ], 'Checks how the web server responds to requests and how much it reveals about its own setup — less disclosure gives attackers fewer clues.')}
 
     ${section('🔍 Technology Detection',[
-      findingInfo('Web Server',r.tech.server),
-      findingInfo('CMS',r.tech.cms),
-      findingInfo('JS Frameworks',r.tech.js.map(t=>`<span class="tag">${t}</span>`).join('')),
-      findingInfo('CDN',r.tech.cdn),
-      findingInfo('Reverse Proxy',r.tech.proxy),
-    ], 'Identifies the software and infrastructure this site is built on — purely informational, not a pass/fail check.')}`;
+      findingInfo('Web Server',escapeHtml(r.tech.server)),
+      findingInfo('CMS',escapeHtml(r.tech.cms)),
+      findingInfo('JS Frameworks',techJs.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('') || 'None detected'),
+      findingInfo('CDN',escapeHtml(r.tech.cdn)),
+      findingInfo('Reverse Proxy',escapeHtml(r.tech.proxy)),
+    ], 'Identifies the software and infrastructure this site is built on — purely informational, not a pass/fail check.')}
 
+    ${section('🔓 Open Ports', ports.all_closed ? [
+      finding(true,'No risky ports open',`Checked ${ports.checked} common ports (databases, remote admin, legacy protocols) — all closed.`),
+    ] : ports.open_ports.map(p=>
+      finding(false, `Port ${p.port} open (${escapeHtml(p.service)})`, escapeHtml(p.reason))
+    ), 'Checks a handful of ports that are often left open by mistake — databases, remote admin, and old protocols.')}
+  `;
   animateScore(r.score, r.risk);
   container.scrollIntoView({behavior:'smooth'});
 }

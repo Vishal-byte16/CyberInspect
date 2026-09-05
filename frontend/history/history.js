@@ -15,8 +15,8 @@ async function renderHistory(c){
     ${scans.length>=2?`<div class="mt"><button class="btn btn-outline" onclick="compareLast()">🔀 Compare Last 2 Scans</button></div>`:''}
   </div>`;
 }
-function histRow(s){ return `<tr data-url="${s.url}">
-  <td><b>${s.url}</b></td><td>${new Date(s.date).toLocaleDateString()}</td>
+function histRow(s){ return `<tr data-url="${escapeHtml(s.url)}">
+  <td><b>${escapeHtml(s.url)}</b></td><td>${new Date(s.date).toLocaleDateString()}</td>
   <td><b style="font-family:'Space Grotesk'">${s.risk==='Incomplete'?'—':s.score}</b></td><td><span class="risk-badge risk-${s.risk.toLowerCase()}">${s.risk}</span></td>
   <td><div class="flex gap"><button class="btn btn-outline btn-sm" onclick="openReport(${s.id})">View</button>
   <button class="btn btn-danger btn-sm" onclick="deleteScan(${s.id})">Delete</button></div></td></tr>`; }
@@ -38,11 +38,11 @@ async function compareLast(){
     <h2 class="mb">🔀 Scan Comparison</h2>
     <div class="grid grid-2">
       <div class="card"><div class="section-title">Previous</div>
-        <h3>${a.url}</h3><p class="muted mono" style="font-size:12px">${new Date(a.date).toLocaleString()}</p>
+        <h3>${escapeHtml(a.url)}</h3><p class="muted mono" style="font-size:12px">${new Date(a.date).toLocaleString()}</p>
         <div style="font-size:40px;font-family:'Space Grotesk';font-weight:800;margin:10px 0">${a.score}</div>
         <span class="risk-badge risk-${a.risk.toLowerCase()}">${a.risk}</span></div>
       <div class="card"><div class="section-title">Latest</div>
-        <h3>${b.url}</h3><p class="muted mono" style="font-size:12px">${new Date(b.date).toLocaleString()}</p>
+        <h3>${escapeHtml(b.url)}</h3><p class="muted mono" style="font-size:12px">${new Date(b.date).toLocaleString()}</p>
         <div style="font-size:40px;font-family:'Space Grotesk';font-weight:800;margin:10px 0">${b.score}</div>
         <span class="risk-badge risk-${b.risk.toLowerCase()}">${b.risk}</span></div>
     </div>

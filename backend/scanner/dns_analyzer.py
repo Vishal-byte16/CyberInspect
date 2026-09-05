@@ -22,7 +22,11 @@ def analyze_dns(host: str) -> dict:
     mx = _q(apex, "MX"); ns = _q(apex, "NS"); txt = _q(apex, "TXT")
     spf = any("v=spf1" in t.lower() for t in txt)
     dmarc = bool(_q(f"_dmarc.{apex}", "TXT"))
-    dkim = bool(_q(f"default._domainkey.{apex}", "TXT"))
+    # DKIM has no fixed, discoverable selector — "default" alone misses most
+    # real providers. Probe the common ones; a miss here means "not found
+    # under a common selector," not "definitely not configured."
+    dkim_selectors = ["default", "google", "selector1", "selector2", "k1", "mail", "dkim"]
+    dkim = any(_q(f"{sel}._domainkey.{apex}", "TXT") for sel in dkim_selectors)
     return {
         "A": a[0] if a else "—", "AAAA": aaaa[0] if aaaa else "—",
         "MX": mx[0] if mx else "—", "NS": ns[0] if ns else "—",
