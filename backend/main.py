@@ -16,6 +16,25 @@ from backend.reports.report_routes import router as report_router
 
 Base.metadata.create_all(bind=engine)
 
+# Auto-run the finding-fields migration on every startup. Safe to run
+# repeatedly (uses ADD COLUMN IF NOT EXISTS) - needed because Render's free
+# tier has no shell access to run one-off migration scripts manually.
+try:
+    with engine.begin() as conn:
+        for col, coltype in {
+            "confidence": "VARCHAR DEFAULT 'high'",
+            "impact": "TEXT",
+            "recommendation": "TEXT",
+            "evidence": "TEXT",
+            "owasp": "VARCHAR",
+            "cwe": "VARCHAR",
+        }.items():
+            conn.exec_driver_sql(
+                f"ALTER TABLE security_findings ADD COLUMN IF NOT EXISTS {col} {coltype}"
+            )
+except Exception as e:
+    print(f"Migration warning (safe to ignore if columns already exist): {e}")
+
 
 def seed_default_users():
     """Only runs when SEED_DEFAULT_USERS=True (blocked outright in production
