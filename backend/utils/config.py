@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:5500"]
     SEED_DEFAULT_USERS: bool = False         # only ever True in local dev
-
+    GOOGLE_SAFE_BROWSING_API_KEY: str = ""
     class Config:
         env_file = ".env"
         extra = "ignore"
