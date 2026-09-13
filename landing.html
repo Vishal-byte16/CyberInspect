@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberInspect — Website Security Assessment Platform</title>
+<style>
+  :root{
+    --bg:#0A0C10;
+    --surface:#12151C;
+    --surface-2:#171B24;
+    --border:#262B36;
+    --gold:#D9A94F;
+    --gold-light:#EBCB8A;
+    --teal:#2FD4C4;
+    --text:#F5F6F8;
+    --muted:#8A93A6;
+    --green:#3DD68C;
+    --red:#E5484D;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .display, h1, h2, h3{
+    font-family:Cambria, Georgia, "Times New Roman", serif;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .mono{ font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace; }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 24px; }
+
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+  @keyframes ringSpin{ from{ stroke-dashoffset:251; } to{ stroke-dashoffset:60; } }
+  .reveal{ opacity:0; animation:fadeUp .6s ease forwards; }
+  .reveal.d1{ animation-delay:.08s; } .reveal.d2{ animation-delay:.16s; } .reveal.d3{ animation-delay:.24s; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ animation:none; opacity:1; }
+    html{ scroll-behavior:auto; }
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(10,12,16,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(160deg, var(--surface-2), var(--surface));
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--teal); font-size:16px;
+  }
+  .brand-name{ font-size:17px; font-weight:700; font-family:Cambria, Georgia, serif; }
+  .brand-name b{ color:var(--gold); font-weight:700; }
+  .nav-actions{ display:flex; align-items:center; gap:20px; }
+  .nav-link{ color:var(--muted); font-size:14px; transition:color .15s ease; }
+  .nav-link:hover{ color:var(--text); }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:9px 18px; border-radius:8px; font-size:14px; font-weight:600;
+    border:1px solid transparent; cursor:pointer;
+    transition:transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{ background:var(--gold); color:#20180a; }
+  .btn-primary:hover{ background:var(--gold-light); transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(217,169,79,0.5); }
+  .btn-ghost{ color:var(--text); border-color:var(--border); }
+  .btn-ghost:hover{ border-color:var(--gold); transform:translateY(-1px); }
+  .menu-toggle{ display:none; background:none; border:1px solid var(--border); border-radius:8px; color:var(--text); width:38px; height:38px; font-size:16px; cursor:pointer; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:76px 0 60px; }
+  .eyebrow{ color:var(--teal); font-size:13px; margin-bottom:14px; }
+  .hero h1{ font-size:44px; line-height:1.15; margin:0 0 18px; max-width:680px; }
+  .hero p.lede{ color:var(--muted); font-size:17px; max-width:540px; margin:0 0 34px; }
+
+  .scan-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px;
+    max-width:640px;
+    box-shadow:0 20px 60px -30px rgba(0,0,0,0.7);
+    transition:border-color .2s ease;
+  }
+  .scan-card:focus-within{ border-color:var(--teal); }
+  .scan-row{ display:flex; gap:10px; }
+  .scan-input{
+    flex:1;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:13px 14px;
+    color:var(--text);
+    font-size:15px;
+    transition:border-color .15s ease;
+  }
+  .scan-input:focus{ outline:none; border-color:var(--teal); }
+  .scan-note{ color:var(--muted); font-size:13px; margin-top:12px; }
+  .scan-note b{ color:var(--text); font-weight:600; }
+
+  /* ---------- Trust strip ---------- */
+  .trust{ border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:22px 0; }
+  .trust-row{ display:flex; flex-wrap:wrap; gap:28px; justify-content:space-between; color:var(--muted); font-size:13px; }
+  .trust-row span b{ color:var(--text); }
+
+  /* ---------- Sections ---------- */
+  section{ padding:72px 0; }
+  .section-head{ max-width:560px; margin:0 0 40px; }
+  .section-head .eyebrow{ margin-bottom:10px; }
+  .section-head h2{ font-size:30px; margin:0 0 12px; }
+  .section-head p{ color:var(--muted); font-size:15.5px; margin:0; }
+
+  /* Process (a real sequence -> numbered is justified) */
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .step{ border:1px solid var(--border); border-radius:12px; padding:22px; background:var(--surface); position:relative; transition:border-color .2s ease, transform .2s ease; }
+  .step:hover{ border-color:var(--teal); transform:translateY(-3px); }
+  .step-num{ font-family:Cambria, Georgia, serif; font-size:22px; color:var(--border); margin-bottom:14px; }
+  .step h3{ font-size:16px; margin:0 0 8px; }
+  .step p{ color:var(--muted); font-size:13.5px; margin:0; }
+  .step:not(:last-child)::after{
+    content:""; position:absolute; top:50%; right:-20px; width:20px; height:1px; background:var(--border);
+  }
+
+  /* Checks grid */
+  .checks{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .check{ border:1px solid var(--border); border-radius:12px; padding:18px; background:var(--surface); transition:border-color .2s ease, transform .2s ease; }
+  .check:hover{ border-color:var(--gold); transform:translateY(-3px); }
+  .check-icon{ width:34px; height:34px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; margin-bottom:14px; color:var(--gold); font-size:16px; }
+  .check h3{ font-size:14.5px; margin:0 0 6px; font-family:inherit; font-weight:600; }
+  .check p{ color:var(--muted); font-size:12.5px; margin:0; }
+
+  /* Sample report */
+  .report-split{ display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+  .report-copy p{ color:var(--muted); font-size:15px; }
+  .report-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden;
+  }
+  .report-card .bar{ display:flex; gap:6px; padding:12px 16px; border-bottom:1px solid var(--border); }
+  .report-card .dot{ width:9px; height:9px; border-radius:50%; background:var(--border); }
+  .report-body{ padding:24px; display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+  .score-ring{ position:relative; width:104px; height:104px; flex-shrink:0; }
+  .score-ring svg{ transform:rotate(-90deg); }
+  .score-ring .track{ fill:none; stroke:var(--border); stroke-width:8; }
+  .score-ring .fill{ fill:none; stroke:url(#ringGradient); stroke-width:8; stroke-linecap:round; stroke-dasharray:251; animation:ringSpin 1.2s ease forwards; }
+  .score-ring .num{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .score-num{ font-family:"SFMono-Regular",Consolas,monospace; font-size:26px; font-weight:700; color:var(--gold); line-height:1; }
+  .score-den{ color:var(--muted); font-size:10.5px; }
+  .report-facts{ flex:1; min-width:200px; }
+  .risk-pill{ display:inline-block; margin:0 0 14px; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:600; background:rgba(61,214,140,0.12); color:var(--green); border:1px solid rgba(61,214,140,0.3); }
+  .report-line{ display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid var(--border); font-size:13.5px; }
+  .report-line:first-of-type{ border-top:none; }
+  .ok{ color:var(--green); } .warn{ color:var(--gold); }
+
+  /* Final CTA */
+  .cta{ text-align:center; padding:80px 0 100px; }
+  .cta h2{ font-size:32px; margin:0 0 14px; }
+  .cta p{ color:var(--muted); margin:0 0 30px; }
+  .cta-actions{ display:flex; gap:14px; justify-content:center; }
+
+  footer{ border-top:1px solid var(--border); padding:28px 0; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+
+  @media (max-width:860px){
+    .steps, .checks{ grid-template-columns:repeat(2,1fr); }
+    .report-split{ grid-template-columns:1fr; }
+    .hero h1{ font-size:clamp(28px,6vw,36px); }
+    .step:not(:last-child)::after{ display:none; }
+  }
+  @media (max-width:720px){
+    .nav-actions{
+      position:fixed; top:66px; left:0; right:0;
+      background:var(--surface); border-bottom:1px solid var(--border);
+      flex-direction:column; align-items:stretch; gap:0; padding:8px 20px 16px;
+      transform:translateY(-8px); opacity:0; pointer-events:none;
+      transition:opacity .15s ease, transform .15s ease;
+    }
+    .nav-actions.open{ transform:translateY(0); opacity:1; pointer-events:auto; }
+    .nav-actions .nav-link, .nav-actions .btn{ width:100%; padding:12px 0; }
+    .nav-actions .btn-primary{ margin-top:8px; }
+    .menu-toggle{ display:block; }
+  }
+  @media (max-width:520px){
+    .steps, .checks{ grid-template-columns:1fr; }
+    .scan-row{ flex-direction:column; }
+    .trust-row{ justify-content:flex-start; }
+    .cta-actions{ flex-direction:column; }
+    .hero{ padding:48px 0 40px; }
+    .hero p.lede{ font-size:15.5px; }
+    section{ padding:52px 0; }
+    .report-body{ flex-direction:column; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2FD4C4"/>
+      <stop offset="100%" stop-color="#D9A94F"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <div class="brand-mark">&#128737;</div>
+      <div class="brand-name">Cyber<b>Inspect</b></div>
+    </div>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="nav-actions" id="nav-actions">
+      <a class="nav-link" href="#how-it-works">How it works</a>
+      <a class="nav-link" href="#checks">What we check</a>
+      <a class="nav-link" href="login.html">Sign in</a>
+      <a class="btn btn-primary" href="register.html">Create account</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow reveal">Website Security Assessment Platform</div>
+      <h1 class="reveal d1">Find out what's actually wrong with a website's security — in seconds.</h1>
+      <p class="lede reveal d2">Paste any URL below. CyberInspect checks its TLS setup, security headers, DNS email protections, exposed ports, and more, then hands back an honest score — not a sales pitch.</p>
+
+      <form class="scan-card reveal d3" id="landing-scan-form">
+        <div class="scan-row">
+          <input class="scan-input" id="landing-scan-url" type="text" placeholder="https://example.com" required>
+          <button type="submit" class="btn btn-primary">Scan now</button>
+        </div>
+        <p class="scan-note">Free. No card required. <b>One quick sign-in</b> after the scan runs lets you save the full report — nothing is locked before you've seen the value.</p>
+      </form>
+    </div>
+  </section>
+
+  <div class="trust">
+    <div class="wrap trust-row">
+      <span><b>10</b> automated checks per scan</span>
+      <span><b>SSRF-safe</b> — never scans internal or private infrastructure</span>
+      <span><b>0-100</b> honest scoring — unverified checks are never counted as a pass</span>
+      <span>Reputation data via <b>Google Safe Browsing</b></span>
+    </div>
+  </div>
+
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How it works</div>
+        <h2>From URL to verdict, four steps</h2>
+        <p>No agent to install, nothing to configure. The scan runs entirely from our servers against the public-facing site.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Submit a URL</h3>
+          <p>Paste any public website address — yours, a client's, or one you're vetting.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Ten checks run</h3>
+          <p>TLS, headers, DNS, HTTP, cookies, domain, reputation, tech, and open ports, in parallel.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>A score is calculated</h3>
+          <p>Findings are weighted honestly — a check that couldn't run never counts as a pass.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <h3>Report delivered</h3>
+          <p>Read it on-screen, or export a branded PDF to share with a client or your team.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="checks">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Under the hood</div>
+        <h2>Ten checks, one clear picture</h2>
+        <p>Each category is scored on what it actually finds — not simply on whether the check ran.</p>
+      </div>
+      <div class="checks">
+        <div class="check"><div class="check-icon">&#128274;</div><h3>SSL / TLS</h3><p>Certificate validity, issuer, and protocol version.</p></div>
+        <div class="check"><div class="check-icon">&#128737;</div><h3>Security headers</h3><p>CSP, HSTS, X-Frame-Options, and more — plus weak-config detection.</p></div>
+        <div class="check"><div class="check-icon">&#9993;</div><h3>Email authentication</h3><p>SPF, DMARC, and DKIM, checked against common selectors.</p></div>
+        <div class="check"><div class="check-icon">&#127760;</div><h3>HTTP behavior</h3><p>Status codes, redirect chains, and server disclosure.</p></div>
+        <div class="check"><div class="check-icon">&#127850;</div><h3>Cookie security</h3><p>Secure, HttpOnly, and SameSite — scored fairly if no cookies are set.</p></div>
+        <div class="check"><div class="check-icon">&#128737;</div><h3>Domain & WHOIS</h3><p>Registrar, domain age, and hosting provider.</p></div>
+        <div class="check"><div class="check-icon">&#9888;</div><h3>Reputation</h3><p>Checked against Google Safe Browsing — never assumed clean.</p></div>
+        <div class="check"><div class="check-icon">&#128268;</div><h3>Open ports</h3><p>A focused check for exposed databases, remote admin, and legacy protocols.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap report-split">
+      <div class="report-copy">
+        <div class="eyebrow">What you get</div>
+        <h2>A report you can actually act on</h2>
+        <p>Every finding comes with an impact statement and a concrete fix — not just a red X. Export it as a PDF to send to a client, a manager, or your future self.</p>
+        <p>Positive controls are called out too, so a clean result reads as confidence, not silence.</p>
+      </div>
+      <div class="report-card">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="report-body">
+          <div class="score-ring">
+            <svg width="104" height="104" viewBox="0 0 104 104">
+              <circle class="track" cx="52" cy="52" r="40"></circle>
+              <circle class="fill" cx="52" cy="52" r="40" pathLength="251"></circle>
+            </svg>
+            <div class="num">
+              <span class="score-num mono">84</span>
+              <span class="score-den">/ 100</span>
+            </div>
+          </div>
+          <div class="report-facts">
+            <span class="risk-pill">LOW RISK</span>
+            <div class="report-line ok"><span>HTTPS &amp; certificate</span><span>Valid</span></div>
+            <div class="report-line warn"><span>Content-Security-Policy</span><span>Missing</span></div>
+            <div class="report-line ok"><span>SPF record</span><span>Configured</span></div>
+            <div class="report-line warn"><span>Open ports</span><span>1 exposed (SSH)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <h2>Run your first scan now</h2>
+      <p>No account needed to see how it works — sign in only when you want to save the result.</p>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="#" onclick="document.getElementById('landing-scan-url').focus();document.querySelector('.hero').scrollIntoView({behavior:'smooth'});return false;">Scan a website</a>
+        <a class="btn btn-ghost" href="login.html">I already have an account</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px;">
+    <span>&copy; <span id="year"></span> CyberInspect</span>
+    <span>Passive, read-only scanning. Always confirm you're authorized to assess a target before sharing results.</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  var menuToggle = document.getElementById('menu-toggle');
+  var navActions = document.getElementById('nav-actions');
+  menuToggle.addEventListener('click', function(){
+    navActions.classList.toggle('open');
+  });
+  navActions.querySelectorAll('a').forEach(function(link){
+    link.addEventListener('click', function(){ navActions.classList.remove('open'); });
+  });
+
+  document.getElementById('landing-scan-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var url = document.getElementById('landing-scan-url').value.trim();
+    if(!url) return;
+    // No account yet: carry the URL into sign-up so it's pre-filled, and the
+    // scan can run the moment they're in. Never a cold, contentless wall.
+    var authed = !!localStorage.getItem('ci_token');
+    var dest = authed ? 'scanner.html' : 'register.html';
+    window.location.href = dest + '?url=' + encodeURIComponent(url);
+  });
+</script>
+
+</body>
+</html>
