@@ -73,6 +73,6 @@ app.include_router(report_router)
 app.include_router(admin_router)
 app.include_router(saved_router)
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"app": settings.APP_NAME, "status": "running", "docs": "/docs"}
