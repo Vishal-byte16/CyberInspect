@@ -223,7 +223,7 @@
       <a class="nav-link" href="#how-it-works">How it works</a>
       <a class="nav-link" href="#checks">What we check</a>
       <a class="nav-link" href="login.html">Sign in</a>
-      <a class="btn btn-primary" href="register.html">Create account</a>
+            <a class="btn btn-primary" href="login.html?mode=register">Create account</a>
     </div>
   </div>
 </header>
@@ -377,7 +377,7 @@
     // No account yet: carry the URL into sign-up so it's pre-filled, and the
     // scan can run the moment they're in. Never a cold, contentless wall.
     var authed = !!localStorage.getItem('ci_token');
-    var dest = authed ? 'scanner.html' : 'register.html';
+        var dest = authed ? 'scanner.html' : 'login.html?mode=register';
     window.location.href = dest + '?url=' + encodeURIComponent(url);
   });
 </script>
