@@ -17,7 +17,7 @@
 <script src="frontend/js/storage.js"></script>
 <script>
   // Entry point: send returning users to their dashboard, everyone else to sign in.
-  location.replace(localStorage.getItem('ci_token') ? 'dashboard.html' : 'login.html');
+    location.replace(localStorage.getItem('ci_token') ? 'dashboard.html' : 'landing.html');
 </script>
 </body>
 </html>
