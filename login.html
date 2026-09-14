@@ -75,5 +75,10 @@
 <script src="backend/api/api.js"></script>
 <script src="backend/auth/auth.js"></script>
 <script src="frontend/login/login.js"></script>
+<script>
+  if (new URLSearchParams(location.search).get('mode') === 'register') {
+    showRegister();
+  }
+</script>
 </body>
 </html>

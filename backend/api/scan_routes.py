@@ -51,6 +51,38 @@ def create_scan(request: Request, req: ScanRequest, db: Session = Depends(get_db
 
     return _shape(scan)
 
+@router.post("/public")
+@limiter.limit("5/hour")
+def create_public_scan(request: Request, req: ScanRequest):
+    """
+    Unauthenticated scan for the landing page - lets a visitor try the
+    tool before creating an account. Stricter rate limit (5/hour per IP,
+    vs 10/minute for logged-in users) since there's no account to hold
+    accountable for abuse. Nothing is persisted to the database - an
+    anonymous scan can't be saved, re-viewed, or exported; that's the
+    incentive to sign in, not a locked door up front.
+    """
+    try:
+        data = run_full_scan(req.url)
+    except UnsafeScanTargetError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(400, f"Scan failed: {e}")
+
+    data["fullUrl"] = data.get("full_url")
+    data["rep"] = data.get("reputation")
+    if isinstance(data.get("headers"), dict):
+        data["headers"] = data["headers"].get("headers", [])
+    if isinstance(data.get("ssl"), dict):
+        data["ssl"]["daysToExpiry"] = data["ssl"].get("days_to_expiry")
+        data["ssl"]["chainComplete"] = data["ssl"].get("chain_complete")
+    if data.get("connection_error"):
+        data["connectionError"] = data["connection_error"]
+    if isinstance(data.get("domain"), dict) and data["domain"].get("error"):
+        data["domain"]["lookupError"] = data["domain"]["error"]
+
+    return {"id": None, "date": None, "guest": True, **data}
+
 @router.get("/history")
 def history(db: Session = Depends(get_db), user=Depends(get_current_user)):
     scans = db.query(WebsiteScan).filter(WebsiteScan.user_id == user.id)\

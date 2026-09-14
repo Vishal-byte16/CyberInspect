@@ -109,6 +109,33 @@
   .scan-note{ color:var(--muted); font-size:13px; margin-top:12px; }
   .scan-note b{ color:var(--text); font-weight:600; }
 
+  #landing-scan-result{ max-width:640px; margin-top:20px; }
+  .scan-loading{
+    display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px;
+    border:1px solid var(--border); border-radius:12px; padding:16px 18px; background:var(--surface);
+  }
+  .spinner-dot{
+    width:14px; height:14px; border-radius:50%; border:2px solid var(--border); border-top-color:var(--teal);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .scan-error{
+    border:1px solid rgba(229,72,77,0.35); background:rgba(229,72,77,0.08); color:#F3B4B6;
+    border-radius:12px; padding:16px 18px; font-size:14px;
+  }
+  .guest-result{
+    border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden;
+    animation:fadeUp .4s ease;
+  }
+  .guest-result .gr-top{ display:flex; gap:20px; align-items:center; padding:20px; flex-wrap:wrap; }
+  .guest-result .gr-facts{ flex:1; min-width:180px; }
+  .guest-result .gr-url{ color:var(--muted); font-size:13px; margin:0 0 10px; word-break:break-all; }
+  .guest-result .report-line{ font-size:13px; }
+  .guest-cta{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    padding:14px 20px; border-top:1px solid var(--border); background:var(--surface-2); font-size:13.5px; color:var(--muted);
+  }
+
   /* ---------- Trust strip ---------- */
   .trust{ border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:22px 0; }
   .trust-row{ display:flex; flex-wrap:wrap; gap:28px; justify-content:space-between; color:var(--muted); font-size:13px; }
@@ -223,7 +250,7 @@
       <a class="nav-link" href="#how-it-works">How it works</a>
       <a class="nav-link" href="#checks">What we check</a>
       <a class="nav-link" href="login.html">Sign in</a>
-            <a class="btn btn-primary" href="login.html?mode=register">Create account</a>
+      <a class="btn btn-primary" href="login.html?mode=register">Create account</a>
     </div>
   </div>
 </header>
@@ -240,8 +267,10 @@
           <input class="scan-input" id="landing-scan-url" type="text" placeholder="https://example.com" required>
           <button type="submit" class="btn btn-primary">Scan now</button>
         </div>
-        <p class="scan-note">Free. No card required. <b>One quick sign-in</b> after the scan runs lets you save the full report — nothing is locked before you've seen the value.</p>
+        <p class="scan-note">Free, no account needed to try it. <b>Sign in only if you want to save or export</b> the report afterward.</p>
       </form>
+
+      <div id="landing-scan-result"></div>
     </div>
   </section>
 
@@ -358,6 +387,7 @@
   </div>
 </footer>
 
+<script src="backend/api/api.js"></script>
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -374,12 +404,68 @@
     e.preventDefault();
     var url = document.getElementById('landing-scan-url').value.trim();
     if(!url) return;
-    // No account yet: carry the URL into sign-up so it's pre-filled, and the
-    // scan can run the moment they're in. Never a cold, contentless wall.
-    var authed = !!localStorage.getItem('ci_token');
-        var dest = authed ? 'scanner.html' : 'login.html?mode=register';
-    window.location.href = dest + '?url=' + encodeURIComponent(url);
+    runGuestScan(url);
   });
+
+  async function runGuestScan(url){
+    var out = document.getElementById('landing-scan-result');
+    out.innerHTML = '<div class="scan-loading"><span class="spinner-dot"></span> Scanning ' + escapeHtml(url) + '…</div>';
+
+    try{
+      var r = await api('/api/scan/public', {method:'POST', body: JSON.stringify({url: url})});
+      renderGuestResult(r, out);
+    }catch(err){
+      out.innerHTML = '<div class="scan-error">' + escapeHtml(err.message || 'Scan failed. Please try again.') + '</div>';
+    }
+  }
+
+  function riskColor(risk){
+    if(risk === 'Very Low' || risk === 'Low') return 'var(--green)';
+    if(risk === 'Medium') return 'var(--gold)';
+    return 'var(--red)';
+  }
+
+  function renderGuestResult(r, out){
+    var headers = r.headers || [];
+    var present = headers.filter(function(h){ return h.present; }).length;
+    var ports = r.ports || {};
+    var portsText = ports.all_closed === false
+      ? (ports.open_ports || []).length + ' exposed'
+      : 'None exposed';
+    var dns = r.dns || {};
+    var color = riskColor(r.risk);
+
+    out.innerHTML =
+      '<div class="guest-result">' +
+        '<div class="gr-top">' +
+          '<div class="score-ring">' +
+            '<svg width="104" height="104" viewBox="0 0 104 104">' +
+              '<circle class="track" cx="52" cy="52" r="40"></circle>' +
+              '<circle class="fill" cx="52" cy="52" r="40" pathLength="251" style="stroke:' + color + ';stroke-dasharray:251;animation:none;stroke-dashoffset:' + (251 - (251 * (r.score||0) / 100)) + '"></circle>' +
+            '</svg>' +
+            '<div class="num"><span class="score-num mono">' + (r.score ?? '—') + '</span><span class="score-den">/ 100</span></div>' +
+          '</div>' +
+          '<div class="gr-facts">' +
+            '<p class="gr-url">' + escapeHtml(r.fullUrl || r.url || '') + '</p>' +
+            '<span class="risk-pill" style="color:' + color + ';border-color:' + color + '55;background:' + color + '1F">' + escapeHtml(r.risk || 'Unknown') + ' RISK</span>' +
+            '<div class="report-line ' + (r.ssl && r.ssl.https ? 'ok' : 'warn') + '"><span>HTTPS</span><span>' + (r.ssl && r.ssl.https ? 'Enabled' : 'Not enabled') + '</span></div>' +
+            '<div class="report-line"><span>Security headers</span><span>' + present + '/' + headers.length + ' present</span></div>' +
+            '<div class="report-line ' + (dns.SPF ? 'ok' : 'warn') + '"><span>SPF record</span><span>' + (dns.SPF ? 'Configured' : 'Missing') + '</span></div>' +
+            '<div class="report-line ' + (ports.all_closed === false ? 'warn' : 'ok') + '"><span>Open ports</span><span>' + portsText + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="guest-cta">' +
+          '<span>This scan wasn\'t saved. Sign in to keep it, see every finding, and export a PDF.</span>' +
+          '<a class="btn btn-primary" href="login.html?mode=register">Save this report</a>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function escapeHtml(str){
+    if(str===null||str===undefined) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
 </script>
 
 </body>
