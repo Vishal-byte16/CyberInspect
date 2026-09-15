@@ -428,7 +428,7 @@ body::after {
 /* ── Score Ring ───────────────────────────────────────────── */
 .score-hero { display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
 .score-ring { position:relative; width:150px; height:150px; }
-.score-ring svg { transform:rotate(-90deg); }
+.score-ring svg { transform:rotate(-90deg); max-width:100%; height:auto; }
 .score-ring .score-num {
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -573,10 +573,24 @@ body::after {
 @media (max-width:600px) {
   .grid-4, .grid-3, .grid-2 { grid-template-columns:1fr; }
   .score-hero { flex-direction:column; align-items:flex-start; gap:18px; }
-  .topbar-actions { display:none; }
-  .modal { padding:16px; }
-  .modal-content { padding:22px; }
+  .topbar { flex-wrap:wrap; gap:10px; padding:12px 16px; }
+  .topbar-actions { width:100%; }
+  .search-mini { width:100%; }
+  .search-mini input { flex:1; width:auto; }
+  .modal { padding:12px; }
+  .modal-content { padding:20px; }
+  .auth-gate-card { padding:28px 20px; }
+  .guest-banner { padding:8px 16px; font-size:11.5px; }
+  .card:has(.table) { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table { min-width:480px; }
   .scan-input-row { flex-direction:column; gap:8px; }
+}
+@media (max-width:420px) {
+  .sidebar { width:60px; }
+  .main { margin-left:60px; }
+  .avatar { width:32px; height:32px; font-size:13px; }
+  .content { padding:14px 12px 50px; }
+  .score-ring { width:110px !important; height:110px !important; }
 }
 
 /* ── Auth Gate (blurred preview + sign-in overlay) ──────────
