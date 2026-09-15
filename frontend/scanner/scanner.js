@@ -3,7 +3,8 @@
 // ================================
 
 async function apiScan(url) {
-    return api('/api/scan', {
+    const endpoint = (typeof isGuest === 'function' && isGuest()) ? '/api/scan/public' : '/api/scan';
+    return api(endpoint, {
         method: 'POST',
         body: JSON.stringify({ url })
     });
@@ -407,13 +408,17 @@ function renderResult(r, container){
             <h2>${escapeHtml(r.url)}</h2>
             <p class="muted mono">${escapeHtml(r.fullUrl)}</p>
             <div class="mt"><span class="risk-badge risk-${r.risk.toLowerCase()}">Risk: ${r.risk}</span></div>
-            <p class="muted mt" style="font-size:12px">Scanned ${new Date(r.date).toLocaleString()}</p>
+            <p class="muted mt" style="font-size:12px">Scanned ${r.date ? new Date(r.date).toLocaleString() : 'just now'}</p>
           </div>
         </div>
         <div class="flex gap wrap">
+          ${r.id ? `
           <button class="btn btn-outline btn-sm" onclick="saveWebsite(${JSON.stringify(r.url).replace(/"/g, '&quot;')})">⭐ Save</button>
           <button class="btn btn-outline btn-sm" onclick="downloadHTML(${r.id})">📄 HTML</button>
           <button class="btn btn-primary btn-sm" onclick="downloadPDF(${r.id})">📑 PDF</button>
+          ` : `
+          <a class="btn btn-primary btn-sm" href="login.html?mode=register">Sign in to save &amp; export</a>
+          `}
         </div>
       </div>
     </div>

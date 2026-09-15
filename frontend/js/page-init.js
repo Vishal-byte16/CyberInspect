@@ -4,9 +4,24 @@
 // It checks the session, fills in the shared sidebar/topbar, and then
 // hands off to that page's own render function.
 
+// Pages a guest (no account) is allowed to use at all. Everything else —
+// dashboard, history, saved, profile, admin — always shows the auth gate,
+// since those pages are inherently tied to a real, persisted account.
+const GUEST_ALLOWED_PAGES = ['scanner'];
+
+function isGuest(){ return sessionStorage.getItem('ci_guest') === '1'; }
+
 async function initAuthedPage(pageKey, renderFn){
   const t = token();
-  if(!t){ showAuthGate(pageKey); return; }
+  if(!t){
+    if(GUEST_ALLOWED_PAGES.includes(pageKey) && isGuest()){
+      applyGuestShell();
+      await renderFn(document.getElementById('content'));
+      return;
+    }
+    showAuthGate(pageKey);
+    return;
+  }
 
   try{
     currentUser = await api('/api/auth/me');
@@ -29,6 +44,52 @@ async function initAuthedPage(pageKey, renderFn){
     return;
   }
   await renderFn(content);
+}
+
+// Adjusts the shared sidebar/topbar for a guest session: marks the
+// account-only nav items as locked, swaps the user card for a "Guest"
+// state, and adds a small banner reminding them nothing will be saved.
+function applyGuestShell(){
+  const lockedPages = ['dashboard.html', 'history.html', 'saved.html', 'profile.html', 'admin.html'];
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+    const href = el.getAttribute('href');
+    if(lockedPages.includes(href)){
+      el.classList.add('nav-item-locked');
+      el.innerHTML += ' <span class="lock-badge">🔒</span>';
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        toast('Sign in to access this — you\'re currently browsing as a guest.', 'warn');
+      });
+    }
+  });
+
+  const avatar = document.getElementById('user-avatar');
+  const name = document.getElementById('user-mini-name');
+  const role = document.getElementById('user-mini-role');
+  if(avatar) avatar.textContent = 'G';
+  if(name) name.textContent = 'Guest';
+  if(role) role.textContent = 'Not signed in';
+
+  const footer = document.querySelector('.sidebar-footer');
+  const logoutBtn = footer && footer.querySelector('button');
+  if(logoutBtn){
+    logoutBtn.textContent = 'Sign in';
+    logoutBtn.setAttribute('onclick', "location.href='login.html'");
+  }
+
+  const topbar = document.querySelector('.topbar');
+  if(topbar && !document.getElementById('guest-banner')){
+    const banner = document.createElement('div');
+    banner.id = 'guest-banner';
+    banner.className = 'guest-banner';
+    banner.innerHTML = 'Browsing as guest — results aren\'t saved. ' +
+      '<a href="login.html?mode=register">Create a free account</a> to keep your scan history.';
+    topbar.insertAdjacentElement('afterend', banner);
+  }
+}
+
+function exitGuest(){
+  sessionStorage.removeItem('ci_guest');
 }
 
 // Shown instead of an immediate redirect when there's no valid session.
@@ -68,13 +129,17 @@ function showAuthGate(pageKey){
       '<div class="auth-gate-actions">' +
         '<a class="btn btn-primary btn-full" href="login.html?mode=register&redirect=' + redirectTarget + '">Create free account</a>' +
         '<a class="btn btn-ghost btn-full" href="login.html?redirect=' + redirectTarget + '">Sign in</a>' +
+        '<a class="btn btn-outline btn-full" href="scanner.html' + (urlParam ? '?url=' + encodeURIComponent(urlParam) : '') +
+          '" onclick="sessionStorage.setItem(\'ci_guest\',\'1\')">Continue as guest</a>' +
       '</div>' +
+      '<p class="auth-gate-note muted">Guests can run scans, but can\'t save results, export reports, or view scan history.</p>' +
     '</div>';
   document.body.appendChild(overlay);
 }
 
 function logout(){
   localStorage.removeItem('ci_token');
+  sessionStorage.removeItem('ci_guest');
   currentUser = null;
   location.href = 'login.html';
 }

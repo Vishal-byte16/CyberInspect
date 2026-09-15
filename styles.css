@@ -601,6 +601,21 @@ body::after {
 .auth-gate-card h2 { font-size: 20px; margin-bottom: 10px; }
 .auth-gate-card p { font-size: 13.5px; line-height: 1.6; margin-bottom: 24px; }
 .auth-gate-actions { display: flex; flex-direction: column; gap: 10px; }
+.auth-gate-note { font-size: 11.5px; margin-top: 16px; margin-bottom: 0; }
+
+/* ── Guest Mode ───────────────────────────────────────────── */
+.nav-item-locked { opacity: .55; cursor: not-allowed; }
+.nav-item-locked:hover { background: transparent; color: var(--slate); }
+.lock-badge { margin-left: auto; font-size: 11px; }
+.guest-banner {
+  background: rgba(200,155,60,.1);
+  border-bottom: 1px solid var(--line-solid);
+  color: var(--amber-light);
+  font-size: 12.5px;
+  padding: 9px 28px;
+  text-align: center;
+}
+.guest-banner a { color: var(--amber-light); text-decoration: underline; font-weight: 600; }
 
 /* ── Custom Scrollbar ─────────────────────────────────────── */
 ::-webkit-scrollbar { width:6px; height:6px; }
