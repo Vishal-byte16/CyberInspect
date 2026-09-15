@@ -109,6 +109,12 @@
 <script src="frontend/reports/reports.js"></script>
 <script src="frontend/js/page-init.js"></script>
 <script src="frontend/dashboard/dashboard.js"></script>
-<script>initAuthedPage('dashboard', renderDashboard);</script>
+<script>
+  (function(){
+    var u = new URLSearchParams(location.search).get('url');
+    if(u) document.getElementById('quick-scan-url').value = u;
+  })();
+  initAuthedPage('dashboard', renderDashboard);
+</script>
 </body>
 </html>
