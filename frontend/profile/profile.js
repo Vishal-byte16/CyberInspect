@@ -11,7 +11,10 @@ async function renderProfile(c){
       <span class="pill ${currentUser.role==='admin'?'pill-red':'pill-green'}">${escapeHtml(currentUser.role)}</span></div></div>
       <div class="input-group"><label>Full Name</label><input id="pf-name" value="${escapeHtml(currentUser.name)}"></div>
       <div class="input-group"><label>Email</label><input id="pf-email" value="${escapeHtml(currentUser.email)}" disabled></div>
-      <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+      <div class="flex gap">
+        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+        <button class="btn btn-ghost" onclick="logout()">Logout</button>
+      </div>
     </div>
     <div class="card"><div class="section-title">📊 Your Activity</div>
       ${statLine('Member Since',new Date(currentUser.created_at).toLocaleDateString())}
