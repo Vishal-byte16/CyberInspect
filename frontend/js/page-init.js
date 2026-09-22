@@ -11,7 +11,39 @@ const GUEST_ALLOWED_PAGES = ['scanner'];
 
 function isGuest(){ return sessionStorage.getItem('ci_guest') === '1'; }
 
+// Adds a hamburger button to the topbar and a tap-to-close backdrop behind
+// the sidebar, for narrow screens. Called once per page load regardless of
+// auth/guest state so every page gets the same off-canvas mobile nav.
+function insertMobileNav(){
+  if(document.getElementById('mobile-menu-btn')) return; // already inserted
+
+  const sidebar = document.querySelector('.sidebar');
+  const topbar = document.querySelector('.topbar');
+  const app = document.getElementById('app');
+  if(!sidebar || !topbar || !app) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'mobile-menu-btn';
+  btn.className = 'mobile-menu-btn';
+  btn.setAttribute('aria-label', 'Toggle menu');
+  btn.textContent = '☰';
+  topbar.insertBefore(btn, topbar.firstChild);
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'sidebar-backdrop';
+  app.appendChild(backdrop);
+
+  function close(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+  btn.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('open');
+  });
+  backdrop.addEventListener('click', close);
+  sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+}
+
 async function initAuthedPage(pageKey, renderFn){
+  insertMobileNav();
   const t = token();
   if(!t){
     if(GUEST_ALLOWED_PAGES.includes(pageKey) && isGuest()){
