@@ -427,16 +427,16 @@ body::after {
 
 /* ── Score Ring ───────────────────────────────────────────── */
 .score-hero { display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
-.score-ring { position:relative; width:150px; height:150px; }
-.score-ring svg { transform:rotate(-90deg); max-width:100%; height:auto; }
+.score-ring { position:relative; width:clamp(96px,26vw,150px); height:clamp(96px,26vw,150px); flex-shrink:0; }
+.score-ring svg { display:block; width:100%; height:100%; transform:rotate(-90deg); }
 .score-ring .score-num {
   position:absolute; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
 }
-.score-ring .score-num b     { font-size:40px; font-weight:700; line-height:1; }
+.score-ring .score-num b     { font-size:clamp(26px,7vw,40px); font-weight:700; line-height:1; }
 .score-ring .score-num small { font-size:11px; color:var(--slate); margin-top:2px; font-family:'Inter'; text-transform:uppercase; }
-.score-hero h2    { font-size:20px; }
-.score-hero .mono { color:var(--slate); }
+.score-hero h2    { font-size:20px; overflow-wrap:anywhere; }
+.score-hero .mono { color:var(--slate); overflow-wrap:anywhere; }
 
 /* ── Risk Badges (report-stamp style, not soft pills) ──────── */
 .risk-badge {
@@ -605,7 +605,6 @@ body::after {
 @media (max-width:420px) {
   .avatar { width:32px; height:32px; font-size:13px; }
   .content { padding:14px 12px 50px; }
-  .score-ring { width:110px !important; height:110px !important; }
   .scan-checkbox-row { grid-template-columns:1fr; }
 }
 

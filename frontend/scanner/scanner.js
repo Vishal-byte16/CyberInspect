@@ -556,7 +556,7 @@ async function saveWebsite(url){
 
 function scoreRing(score, risk){
   if(risk === 'Incomplete'){
-    return `<div class="score-ring"><svg width="160" height="160">
+    return `<div class="score-ring"><svg viewBox="0 0 160 160" preserveAspectRatio="xMidYMid meet">
       <circle cx="80" cy="80" r="68" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none"/>
       <circle cx="80" cy="80" r="68" stroke="var(--slate)" stroke-width="12" fill="none"
         stroke-dasharray="6 10" stroke-linecap="round" opacity=".5"/>
@@ -565,12 +565,20 @@ function scoreRing(score, risk){
   const color = score>=90?'#00B8D9':score>=75?'#22C55E':score>=60?'#FACC15':score>=40?'#FB923C':'#EF4444';
   const r=68, circ=2*Math.PI*r;
   const uid='sg'+Math.floor(Math.random()*100000);
-  return `<div class="score-ring"><svg width="160" height="160">
-    <defs><linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${color}"/><stop offset="100%" stop-color="#00A6C4"/></linearGradient></defs>
+  return `<div class="score-ring"><svg viewBox="0 0 160 160" preserveAspectRatio="xMidYMid meet" style="overflow:visible">
+    <defs>
+      <linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${color}"/><stop offset="100%" stop-color="#00A6C4"/>
+      </linearGradient>
+      <filter id="${uid}-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
     <circle cx="80" cy="80" r="${r}" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none"/>
     <circle cx="80" cy="80" r="${r}" stroke="url(#${uid})" stroke-width="12" fill="none"
       stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round"
+      filter="url(#${uid}-glow)"
       style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)" class="ring-anim"/>
     </svg><div class="score-num"><b style="color:${color}">0</b><small>/ 100</small></div></div>`;
 }
