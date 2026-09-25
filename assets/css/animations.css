@@ -12,3 +12,15 @@
 @keyframes spin { 
     to{transform:rotate(360deg)}
 }
+@keyframes cardIn {
+    from{opacity:0;transform:translateY(16px) scale(.98)}
+    to{opacity:1;transform:none}
+}
+@keyframes tapRipple {
+    from{transform:scale(0);opacity:.55}
+    to{transform:scale(2.6);opacity:0}
+}
+@keyframes softGlowPulse {
+    0%,100%{filter:drop-shadow(0 0 0 transparent)}
+    50%{filter:drop-shadow(0 0 6px currentColor)}
+}
