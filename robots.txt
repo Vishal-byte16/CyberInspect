@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /landing.html
+Allow: /login.html
+Disallow: /dashboard.html
+Disallow: /scanner.html
+Disallow: /history.html
+Disallow: /saved.html
+Disallow: /profile.html
+Disallow: /admin.html
+Disallow: /reports.html
+Disallow: /frontend/
+
+Sitemap: https://cyberinspect.dpdns.org/sitemap.xml
